@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WalletWise - Control Online Shopping Expenses</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading...</div>
+    </div>
+
+    <!-- Success Celebration Modal -->
+    <div class="success-celebration">
+        <div class="success-icon">🎉</div>
+        <h2>Success!</h2>
+        <p id="successMessage"></p>
+        <button class="btn btn-primary" id="continueBtn">Continue</button>
+    </div>
+
+    <!-- Welcome Animation -->
+    <div class="welcome-animation">
+        <div class="celebrate-emoji">🎊</div>
+        <h1 class="welcome-text">Welcome to WalletWise!</h1>
+        <p class="welcome-subtext">Your journey to smart spending starts now</p>
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Landing Page -->
+    <section id="landingPage" class="page active">
+        <header class="header">
+            <div class="container">
+                <div class="header-content">
+                    <div class="logo">
+                        <i class="fas fa-shopping-cart logo-icon"></i>
+                        <div class="logo-text">
+                            <h1>WalletWise</h1>
+                            <p class="tagline">Control Your Online Shopping Addiction</p>
+                        </div>
+                    </div>
+                    <div class="nav-buttons" id="navButtons">
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-login" id="headerLoginBtn">
+                                <i class="fas fa-sign-in-alt"></i> Log In
+                            </button>
+                            <button class="btn btn-signup" id="headerSignupBtn">
+                                <i class="fas fa-user-plus"></i> Sign Up
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <div class="hero">
+            <div class="container">
+                <h2>Take Control of Your Online Shopping</h2>
+                <p>WalletWise helps you track, analyze, and control your online shopping expenses. Break free from impulsive buying and build healthier spending habits.</p>
+                
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">₱8,500</span>
+                        <span class="stat-label">Average Monthly Savings</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">-65%</span>
+                        <span class="stat-label">Impulse Buys Reduced</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">92%</span>
+                        <span class="stat-label">User Success Rate</span>
+                    </div>
+                </div>
+                
+                <div class="hero-cta">
+                    <button class="btn btn-primary" id="getStartedBtn">
+                        <i class="fas fa-play-circle"></i> Get Started Free
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="container">
+            <div class="features">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Spending Analysis</h3>
+                    <p>Visual breakdown of your online shopping habits by category, platform, and time of day.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <h3>Smart Alerts</h3>
+                    <p>Get notified when you're about to exceed your budget or during high-risk shopping times.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>Behavior Tracking</h3>
+                    <p>Identify triggers and patterns that lead to unnecessary online purchases.</p>
+                </div>
+            </div>
+            
+            <div class="tips-section">
+                <div class="section-title">
+                    <h2>10 Tips to Control Online Shopping</h2>
+                    <p>Practical strategies to break the cycle of compulsive buying</p>
+                </div>
+                
+                <div class="tips-grid">
+                    <div class="tip-card">
+                        <div class="tip-number">1</div>
+                        <div>
+                            <h4>24-Hour Rule</h4>
+                            <p>Wait 24 hours before buying anything in your cart. Most impulse buys lose their appeal.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="tip-card">
+                        <div class="tip-number">2</div>
+                        <div>
+                            <h4>Unsubscribe & Unfollow</h4>
+                            <p>Remove shopping apps from your phone and unsubscribe from promotional emails.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="tip-card">
+                        <div class="tip-number">3</div>
+                        <div>
+                            <h4>Set Monthly Limits</h4>
+                            <p>Allocate a specific budget for "wants" vs "needs" and stick to it religiously.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="tip-card">
+                        <div class="tip-number">4</div>
+                        <div>
+                            <h4>Use Cash-Back Cards</h4>
+                            <p>Only shop using prepaid cards or cards with strict limits to prevent overspending.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="tip-card">
+                        <div class="tip-number">5</div>
+                        <div>
+                            <h4>Track Every Purchase</h4>
+                            <p>Log every online purchase immediately. Awareness is the first step to control.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="tip-card">
+                        <div class="tip-number">6</div>
+                        <div>
+                            <h4>Identify Triggers</h4>
+                            <p>Note when and why you shop. Is it boredom, stress, or social media influence?</p>
+                        </div>
+                    </div>
+                    
+                    <div class="tip-card">
+                        <div class="tip-number">7</div>
+                        <div>
+                            <h4>Implement Cooling-Off Periods</h4>
+                            <p>For expensive items, implement a 7-day cooling-off period before purchasing.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="tip-card">
+                        <div class="tip-number">8</div>
+                        <div>
+                            <h4>Find Alternatives</h4>
+                            <p>Replace shopping with healthier habits like exercising, reading, or hobbies.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="tip-card">
+                        <div class="tip-number">9</div>
+                        <div>
+                            <h4>Accountability Partner</h4>
+                            <p>Share your spending goals with a friend who can help keep you accountable.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="tip-card">
+                        <div class="tip-number">10</div>
+                        <div>
+                            <h4>Celebrate Small Wins</h4>
+                            <p>Reward yourself for sticking to your budget, but not with more shopping!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="warning-card">
+                <h3><i class="fas fa-exclamation-triangle"></i> Warning Signs of Shopping Addiction</h3>
+                <div class="warning-grid">
+                    <div>
+                        <p><i class="fas fa-check-circle warning-check"></i> Hiding purchases from family</p>
+                        <p><i class="fas fa-check-circle warning-check"></i> Shopping to relieve stress</p>
+                        <p><i class="fas fa-check-circle warning-check"></i> Feeling guilt after shopping</p>
+                    </div>
+                    <div>
+                        <p><i class="fas fa-check-circle warning-check"></i> Maxing out credit cards</p>
+                        <p><i class="fas fa-check-circle warning-check"></i> Shopping instead of paying bills</p>
+                        <p><i class="fas fa-check-circle warning-check"></i> Lying about spending</p>
+                    </div>
+                </div>
+                <p class="warning-message">
+                    If you recognize these signs, it's time to take control. WalletWise can help.
+                </p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Login Page -->
+    <section id="loginPage" class="page">
+        <div class="container">
+            <div class="auth-wrapper">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <h2>Welcome Back!</h2>
+                        <p>Continue your journey to smarter spending</p>
+                    </div>
+                    
+                    <div id="loginMessage" class="message-box"></div>
+                    
+                    <form id="loginForm">
+                        <div class="form-group floating-label">
+                            <input type="text" id="loginUsername" class="form-control" required>
+                            <label for="loginUsername">
+                                <i class="fas fa-user"></i> Username
+                            </label>
+                            <span class="input-icon"></span>
+                        </div>
+                        
+                        <div class="form-group floating-label">
+                            <input type="password" id="loginPassword" class="form-control" required>
+                            <label for="loginPassword">
+                                <i class="fas fa-lock"></i> Password
+                            </label>
+                            <span class="input-icon"></span>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <i class="fas fa-sign-in-alt"></i> Log In
+                        </button>
+                    </form>
+
+                    <!-- Login Success Message at Bottom -->
+                    <div id="loginSuccessMessage" class="form-success-message">
+                        <div class="form-success-icon">✓</div>
+                        <div class="form-success-content">
+                            <h4>Login Successful!</h4>
+                            <p>Welcome back! Redirecting to your dashboard...</p>
+                        </div>
+                    </div>
+
+                    <div id="loginNextSteps" class="next-steps">
+                        <h4><i class="fas fa-bolt"></i> Quick Actions</h4>
+                        <div class="next-step-item" id="checkBudgetStep">
+                            <div class="next-step-icon">
+                                <i class="fas fa-chart-pie"></i>
+                            </div>
+                            <div class="next-step-text">
+                                <h5>Check Budget Status</h5>
+                                <p>See how much you've spent this month</p>
+                            </div>
+                        </div>
+                        <div class="next-step-item" id="addExpenseStep">
+                            <div class="next-step-icon">
+                                <i class="fas fa-plus-circle"></i>
+                            </div>
+                            <div class="next-step-text">
+                                <h5>Log Today's Expenses</h5>
+                                <p>Track your spending from today</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="auth-footer">
+                        <p>New to WalletWise? 
+                            <a href="#" id="goToSignupLink">Start controlling your spending</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Signup Page -->
+    <section id="signupPage" class="page">
+        <div class="container">
+            <div class="auth-wrapper">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <h2>Take Control Today</h2>
+                        <p>Join thousands who have mastered their online spending</p>
+                    </div>
+                    
+                    <div id="signupMessage" class="message-box"></div>
+                    
+                    <form id="signupForm">
+                        <div class="form-group floating-label">
+                            <input type="text" id="signupUsername" class="form-control" required>
+                            <label for="signupUsername">
+                                <i class="fas fa-user-circle"></i> Username
+                            </label>
+                            <span class="input-icon"></span>
+                            <div class="error-message" id="signupUsernameError">Username must be at least 3 characters</div>
+                            <div class="success-message" id="signupUsernameSuccess">Username is available</div>
+                        </div>
+                        
+                        <div class="form-group floating-label">
+                            <input type="email" id="signupEmail" class="form-control" required>
+                            <label for="signupEmail">
+                                <i class="fas fa-envelope"></i> Email Address
+                            </label>
+                            <span class="input-icon"></span>
+                            <div class="error-message" id="signupEmailError">Please enter a valid email</div>
+                            <div class="success-message" id="signupEmailSuccess">Email is valid</div>
+                        </div>
+                        
+                        <div class="form-group floating-label">
+                            <input type="password" id="signupPassword" class="form-control" required>
+                            <label for="signupPassword">
+                                <i class="fas fa-key"></i> Password
+                            </label>
+                            <span class="input-icon"></span>
+                            <div class="error-message" id="signupPasswordError">Password must be at least 6 characters</div>
+                            <div class="success-message" id="signupPasswordSuccess">Password strength: Good</div>
+                            <div class="password-tooltip">
+                                <div style="margin-bottom: 5px;"><strong>Password Requirements:</strong></div>
+                                <div class="checkmark-container"><span class="checkmark" id="lengthCheck">⨯</span> At least 8 characters</div>
+                                <div class="checkmark-container"><span class="checkmark" id="uppercaseCheck">⨯</span> One uppercase letter</div>
+                                <div class="checkmark-container"><span class="checkmark" id="numberCheck">⨯</span> One number</div>
+                                <div class="checkmark-container"><span class="checkmark" id="specialCheck">⨯</span> One special character</div>
+                            </div>
+                            <div class="password-strength">
+                                <div class="strength-bar"></div>
+                                <div class="strength-text"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group floating-label">
+                            <input type="password" id="confirmPassword" class="form-control" required>
+                            <label for="confirmPassword">
+                                <i class="fas fa-check-double"></i> Confirm Password
+                            </label>
+                            <span class="input-icon"></span>
+                            <div class="error-message" id="confirmPasswordError">Passwords do not match</div>
+                            <div class="success-message" id="confirmPasswordSuccess">Passwords match</div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success btn-block">
+                            <i class="fas fa-user-shield"></i> Start My Recovery Journey
+                        </button>
+                    </form>
+
+                    <!-- Signup Success Messages at Bottom -->
+                    <div id="signupSuccessMessage" class="form-success-message">
+                        <div class="form-success-icon">🎉</div>
+                        <div class="form-success-content">
+                            <h4>Account Created Successfully!</h4>
+                            <p>Your journey to financial control starts now!</p>
+                        </div>
+                    </div>
+
+                    <div id="signupProgress" class="progress-tracker">
+                        <div class="tracker-header">
+                            <h4><i class="fas fa-rocket"></i> Setup Progress</h4>
+                            <div class="tracker-stats">
+                                <div class="percentage">0%</div>
+                                <div class="label">Complete</div>
+                            </div>
+                        </div>
+                        <div class="tracker-bar">
+                            <div class="tracker-fill" style="width: 0%"></div>
+                        </div>
+                        <div class="tracker-labels">
+                            <span>Start</span>
+                            <span>Complete</span>
+                        </div>
+                    </div>
+
+                    <div id="welcomeAchievement" class="achievement-badge">
+                        <div class="achievement-icon">🏆</div>
+                        <div class="achievement-content">
+                            <h4>Achievement Unlocked!</h4>
+                            <p>"First Step" - Created your WalletWise account</p>
+                        </div>
+                    </div>
+
+                    <div id="signupCompletion" class="completion-message">
+                        <div class="completion-icon">✨</div>
+                        <h3>You're All Set!</h3>
+                        <p>Your account is ready. Start tracking your expenses and take control of your spending habits.</p>
+                        <button class="btn go-to-dashboard-btn" style="background: white; color: #2d5be3;">
+                            <i class="fas fa-arrow-right"></i> Go to Dashboard
+                        </button>
+                    </div>
+                    
+                    <div class="auth-footer">
+                        <p>Already have an account? 
+                            <a href="#" id="goToLoginLink">Log in here</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Dashboard Page -->
+    <section id="dashboardPage" class="page">
+        <div class="container">
+            <div class="dashboard-header">
+                <div class="welcome-section">
+                    <h2>Welcome back, <span id="dashboardUsername">User</span>! 💪</h2>
+                    <p>Today is a great day to make smart spending choices</p>
+                </div>
+                <button class="btn btn-danger" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Log Out
+                </button>
+            </div>
+            
+            <div class="control-panel">
+                <div class="control-card warning">
+                    <div class="control-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <h3>24-Hour Pending</h3>
+                    <p><strong>3 items</strong> waiting in your cart</p>
+                    <button class="btn btn-warning cart-review-btn" style="background: linear-gradient(135deg, #ff9800, #ff5722);">
+                        <i class="fas fa-clock"></i> Review Items (₱2,000)
+                    </button>
+                </div>
+                
+                <div class="control-card danger">
+                    <div class="control-icon">
+                        <i class="fas fa-ban"></i>
+                    </div>
+                    <h3>Time Block Active</h3>
+                    <p>High shopping risk: <strong>8-10 PM</strong></p>
+                    <button class="btn btn-danger time-block-btn" style="background: linear-gradient(135deg, #f44336, #d32f2f);">
+                        <i class="fas fa-lock"></i> Set Block
+                    </button>
+                </div>
+                
+                <div class="control-card success">
+                    <div class="control-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <h3>Progress Report</h3>
+                    <p>Saved <strong id="savedAmount">₱2,500</strong> this month</p>
+                    <button class="btn btn-success progress-btn" style="background: linear-gradient(135deg, #4caf50, #388e3c);">
+                        <i class="fas fa-chart-line"></i> View Progress
+                    </button>
+                </div>
+            </div>
+            
+            <div class="budget-section">
+                <div class="budget-header">
+                    <div>
+                        <h3>Monthly Shopping Budget</h3>
+                        <p id="budgetRemaining">₱5,000 remaining of ₱15,000</p>
+                    </div>
+                    <div class="budget-stats">
+                        <h3 id="budgetPercentage">33% Used</h3>
+                        <p>You're on track! 🎯</p>
+                    </div>
+                </div>
+                
+                <div class="budget-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 33%;"></div>
+                    </div>
+                    <div class="progress-labels">
+                        <span>₱0</span>
+                        <span id="totalBudget">₱15,000</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Savings Wallet Section -->
+            <div class="savings-section">
+                <div class="savings-header">
+                    <div>
+                        <h3><i class="fas fa-piggy-bank"></i> Savings Wallet</h3>
+                        <p>Money saved from avoiding impulse purchases</p>
+                    </div>
+                    <div class="savings-stats">
+                        <h3 id="savingsPercentage">0%</h3>
+                        <p>of Goal</p>
+                    </div>
+                </div>
+                
+                <div class="savings-content">
+                    <div class="savings-card">
+                        <div class="savings-icon">💰</div>
+                        <h4>Current Balance</h4>
+                        <p class="savings-amount" id="savingsBalance">₱0</p>
+                        <div class="savings-growth">
+                            <span id="savingsGrowth">+₱0 this month</span>
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="savings-goal">
+                        <h4><i class="fas fa-bullseye"></i> Savings Goal</h4>
+                        <p>Target: <span id="savingsGoalAmount">₱10,000</span></p>
+                        <div class="goal-progress">
+                            <div class="goal-progress-bar">
+                                <div class="goal-progress-fill" id="goalProgressFill" style="width: 0%"></div>
+                            </div>
+                            <div class="goal-labels">
+                                <span>₱0</span>
+                                <span id="savingsGoal">₱10,000</span>
+                            </div>
+                        </div>
+                        <div class="goal-actions">
+                            <button class="btn btn-primary" id="addSavingsBtn">
+                                <i class="fas fa-plus"></i> Add to Wallet
+                            </button>
+                            <button class="btn btn-outline" id="setGoalBtn">
+                                <i class="fas fa-edit"></i> Set Goal
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="savings-history">
+                        <h4><i class="fas fa-history"></i> Recent Savings</h4>
+                        <div class="savings-list" id="savingsList">
+                            <div class="empty-savings">
+                                <p>No savings yet. Start by avoiding impulse purchases!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="savings-achievements">
+                    <h4><i class="fas fa-trophy"></i> Savings Achievements</h4>
+                    <div class="achievements-grid" id="savingsAchievements">
+                        <div class="achievement-item locked">
+                            <div class="achievement-icon">🏦</div>
+                            <div class="achievement-text">
+                                <h5>First ₱1,000</h5>
+                                <p>Save your first ₱1,000</p>
+                            </div>
+                        </div>
+                        <div class="achievement-item locked">
+                            <div class="achievement-icon">🎯</div>
+                            <div class="achievement-text">
+                                <h5>Goal Reached</h5>
+                                <p>Reach your savings goal</p>
+                            </div>
+                        </div>
+                        <div class="achievement-item locked">
+                            <div class="achievement-icon">📈</div>
+                            <div class="achievement-text">
+                                <h5>Consistent Saver</h5>
+                                <p>Save for 30 days straight</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="main-card">
+                <div class="card-title">
+                    <i class="fas fa-shopping-bag"></i>
+                    <h3>Online Shopping Breakdown</h3>
+                </div>
+                
+                <div class="category-filters">
+                    <div class="category-filter active" data-category="all">All</div>
+                    <div class="category-filter" data-category="ecommerce">🛍️ E-commerce</div>
+                    <div class="category-filter" data-category="food">🍔 Food Delivery</div>
+                    <div class="category-filter" data-category="gaming">🎮 Gaming</div>
+                    <div class="category-filter" data-category="fashion">👗 Fashion</div>
+                    <div class="category-filter" data-category="tech">📱 Tech</div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="expense-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Platform</th>
+                                <th>Item</th>
+                                <th>Category</th>
+                                <th>Amount (₱)</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expenseTableBody">
+                            <!-- Expenses loaded by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="total-section">
+                    <h4>Total Spent This Month:</h4>
+                    <p class="total-amount"><span class="peso-sign">₱</span> <span id="totalExpenses">0.00</span></p>
+                </div>
+            </div>
+            
+            <div class="insights">
+                <div class="insight-card">
+                    <h4><i class="fas fa-chart-bar"></i> Weekly Shopping Pattern</h4>
+                    <p id="shoppingPattern">You shop most on <strong>Saturdays</strong> between <strong>8-11 PM</strong></p>
+                    <p class="insight-tip">
+                        💡 Tip: Schedule alternative activities during high-risk times
+                    </p>
+                </div>
+                
+                <div class="insight-card">
+                    <h4><i class="fas fa-brain"></i> Emotional Triggers</h4>
+                    <p id="emotionalTriggers">78% of your impulse buys occur when you're <strong>bored</strong> or <strong>stressed</strong></p>
+                    <p class="insight-success">
+                        ✅ You've reduced stress-shopping by <span id="reductionPercent">40%</span> this month!
+                    </p>
+                </div>
+            </div>
+            
+            <div class="main-card">
+                <div class="card-title">
+                    <i class="fas fa-plus-circle"></i>
+                    <h3>Log a Shopping Expense</h3>
+                </div>
+                
+                <div id="expenseMessage" class="message-box"></div>
+                
+                <form id="expenseForm">
+                    <div class="form-row">
+                        <div class="form-group floating-label">
+                            <input type="date" id="expenseDate" class="form-control" required>
+                            <label for="expenseDate">Date</label>
+                            <span class="input-icon"></span>
+                        </div>
+                        
+                        <div class="form-group floating-label">
+                            <select id="shoppingPlatform" class="form-control" required>
+                                <option value=""></option>
+                                <option value="shopee">Shopee</option>
+                                <option value="lazada">Lazada</option>
+                                <option value="amazon">Amazon</option>
+                                <option value="foodpanda">FoodPanda</option>
+                                <option value="grab">GrabFood</option>
+                                <option value="other">Other</option>
+                            </select>
+                            <label for="shoppingPlatform">Platform</label>
+                            <span class="input-icon"></span>
+                        </div>
+                        
+                        <div class="form-group floating-label">
+                            <input type="number" id="expenseAmount" class="form-control" 
+                                   placeholder=" " min="0" step="0.01" required>
+                            <label for="expenseAmount">Amount (₱)</label>
+                            <span class="input-icon"></span>
+                        </div>
+                        
+                        <div class="form-group floating-label">
+                            <select id="expenseCategory" class="form-control" required>
+                                <option value=""></option>
+                                <option value="fashion">👗 Fashion</option>
+                                <option value="electronics">📱 Electronics</option>
+                                <option value="food">🍔 Food Delivery</option>
+                                <option value="gaming">🎮 Gaming</option>
+                                <option value="home">🏠 Home & Living</option>
+                                <option value="beauty">💄 Beauty</option>
+                                <option value="other">Other</option>
+                            </select>
+                            <label for="expenseCategory">Category</label>
+                            <span class="input-icon"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group floating-label">
+                        <input type="text" id="expenseDescription" class="form-control" required>
+                        <label for="expenseDescription">Item Description</label>
+                            <span class="input-icon"></span>
+                    </div>
+                    
+                    <div class="form-group floating-label">
+                        <select id="purchaseType" class="form-control" required>
+                            <option value="planned">✅ Planned Purchase</option>
+                            <option value="impulse">⚠️ Impulse Buy</option>
+                            <option value="emotional">😔 Emotional Purchase</option>
+                            <option value="necessary">📋 Necessary Expense</option>
+                        </select>
+                        <label for="purchaseType">Purchase Type</label>
+                        <span class="input-icon"></span>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Log This Purchase
+                    </button>
+                </form>
+
+                <!-- Expense Success Messages at Bottom -->
+                <div id="expenseSuccessMessage" class="form-success-message">
+                    <div class="form-success-icon">💰</div>
+                    <div class="form-success-content">
+                        <h4>Expense Logged Successfully!</h4>
+                        <p>Your spending has been tracked. View insights below.</p>
+                    </div>
+                </div>
+
+                <div id="expenseTips" class="success-steps">
+                    <h4><i class="fas fa-lightbulb"></i> Smart Spending Tip</h4>
+                    <ul class="step-list">
+                        <li>
+                            <div class="step-number">1</div>
+                            <div class="step-text">Wait 24 hours before making impulse purchases</div>
+                        </li>
+                        <li>
+                            <div class="step-number">2</div>
+                            <div class="step-text">Compare prices across different platforms</div>
+                        </li>
+                        <li>
+                            <div class="step-number">3</div>
+                            <div class="step-text">Check if you really need it or just want it</div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div id="budgetAlert" class="form-success-message warning">
+                    <div class="form-success-icon">⚠️</div>
+                    <div class="form-success-content">
+                        <h4>Budget Alert</h4>
+                        <p>You're approaching your monthly budget limit. Consider waiting for next month.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Savings Modal -->
+    <div class="savings-modal">
+        <div class="savings-modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-plus-circle"></i> Add to Savings</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="savingsAmount"><i class="fas fa-money-bill-wave"></i> Amount (₱)</label>
+                    <input type="number" id="savingsAmount" class="form-control" min="1" placeholder="Enter amount">
+                </div>
+                <div class="form-group">
+                    <label for="savingsSource"><i class="fas fa-tag"></i> Source</label>
+                    <select id="savingsSource" class="form-control">
+                        <option value="impulse_avoided">Impulse Purchase Avoided</option>
+                        <option value="budget_leftover">Monthly Budget Leftover</option>
+                        <option value="extra_income">Extra Income</option>
+                        <option value="cashback">Cashback/Rewards</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="savingsDescription"><i class="fas fa-sticky-note"></i> Description</label>
+                    <input type="text" id="savingsDescription" class="form-control" placeholder="What did you save on?">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancelSavings">Cancel</button>
+                <button class="btn btn-success" id="confirmSavings">Add to Wallet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Set Goal Modal -->
+    <div class="goal-modal">
+        <div class="goal-modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-bullseye"></i> Set Savings Goal</h3>
+                <button class="close-goal-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="goalAmount"><i class="fas fa-money-bill-wave"></i> Target Amount (₱)</label>
+                    <input type="number" id="goalAmount" class="form-control" min="100" placeholder="e.g., 10000">
+                </div>
+                <div class="form-group">
+                    <label for="goalDeadline"><i class="fas fa-calendar-alt"></i> Target Date</label>
+                    <input type="date" id="goalDeadline" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="goalPurpose"><i class="fas fa-bullseye"></i> Goal Purpose</label>
+                    <input type="text" id="goalPurpose" class="form-control" placeholder="e.g., Emergency Fund, Vacation">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancelGoal">Cancel</button>
+                <button class="btn btn-primary" id="confirmGoal">Set Goal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
