@@ -991,6 +991,11 @@ body {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
 
+.dashboard-actions {
+    display: flex;
+    gap: 10px;
+}
+
 .welcome-section h2 {
     color: #2d5be3;
     margin-bottom: 8px;
@@ -1102,6 +1107,7 @@ body {
     padding: 40px;
     border-radius: 20px;
     margin-bottom: 40px;
+    position: relative;
 }
 
 .budget-header {
@@ -1152,6 +1158,19 @@ body {
     justify-content: space-between;
     font-size: 14px;
     opacity: 0.8;
+}
+
+/* NEW: Budget Actions */
+.budget-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+    justify-content: center;
+}
+
+.budget-actions .btn {
+    padding: 12px 20px;
+    font-size: 14px;
 }
 
 /* === SAVINGS WALLET === */
@@ -1450,8 +1469,8 @@ body {
     font-size: 12px;
 }
 
-/* Savings Modal */
-.savings-modal, .goal-modal, .pending-modal, .timeblock-modal, .progress-modal {
+/* NEW: Budget & Transfer Modals */
+.budget-modal, .transfer-modal, .savings-modal, .goal-modal, .pending-modal, .timeblock-modal, .progress-modal {
     position: fixed;
     top: 0;
     left: 0;
@@ -1464,15 +1483,15 @@ body {
     z-index: 10000;
 }
 
-.savings-modal.active, .goal-modal.active, .pending-modal.active, .timeblock-modal.active, .progress-modal.active {
+.budget-modal.active, .transfer-modal.active, .savings-modal.active, .goal-modal.active, .pending-modal.active, .timeblock-modal.active, .progress-modal.active {
     display: flex;
     animation: fadeIn 0.3s ease;
 }
 
-.savings-modal-content, .goal-modal-content, .pending-modal-content, .timeblock-modal-content, .progress-modal-content {
+.budget-modal-content, .transfer-modal-content, .savings-modal-content, .goal-modal-content, .pending-modal-content, .timeblock-modal-content, .progress-modal-content {
     background: white;
     width: 90%;
-    max-width: 600px;
+    max-width: 500px;
     border-radius: 20px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
     overflow: hidden;
@@ -1495,7 +1514,7 @@ body {
     gap: 10px;
 }
 
-.close-modal, .close-goal-modal, .close-pending-modal, .close-timeblock-modal, .close-progress-modal {
+.close-modal, .close-goal-modal, .close-pending-modal, .close-timeblock-modal, .close-progress-modal, .close-budget-modal, .close-transfer-modal {
     background: none;
     border: none;
     color: white;
@@ -1514,6 +1533,76 @@ body {
     gap: 10px;
     justify-content: flex-end;
     background: #f8f9fa;
+}
+
+/* Budget Modal Specific */
+.current-budget-display {
+    text-align: center;
+    padding: 20px;
+    background: #f0f7ff;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.current-budget-display h3 {
+    color: #2d5be3;
+    font-size: 32px;
+    margin-top: 10px;
+}
+
+.budget-tip {
+    background: #fff8e1;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 20px;
+    font-size: 14px;
+    color: #856404;
+}
+
+.budget-tip i {
+    color: #ff9800;
+    margin-right: 8px;
+}
+
+/* Transfer Modal Specific */
+.balance-info {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.balance-item {
+    flex: 1;
+    text-align: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.balance-item p {
+    color: #666;
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+.balance-item h3 {
+    color: #2d5be3;
+    font-size: 24px;
+}
+
+.transfer-warning {
+    background: #fff3cd;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 20px;
+    font-size: 14px;
+    color: #856404;
+}
+
+.transfer-warning i {
+    color: #ff9800;
+    margin-right: 8px;
 }
 
 /* === PENDING ITEMS MODAL === */
@@ -2419,6 +2508,11 @@ body {
         gap: 20px;
     }
     
+    .dashboard-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
     .control-panel {
         grid-template-columns: 1fr;
     }
@@ -2427,6 +2521,10 @@ body {
         flex-direction: column;
         align-items: flex-start;
         gap: 15px;
+    }
+    
+    .budget-actions {
+        flex-direction: column;
     }
     
     .category-filters {
@@ -2484,6 +2582,10 @@ body {
     .progress-overview {
         flex-direction: column;
         gap: 20px;
+    }
+    
+    .balance-info {
+        flex-direction: column;
     }
 }
 

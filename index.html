@@ -6,6 +6,7 @@
     <title>WalletWise - Control Online Shopping Expenses</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <!-- Loading Overlay -->
@@ -118,12 +119,12 @@
                     <div class="days-selection">
                         <label>Days to Block:</label>
                         <div class="days-grid">
-                            <button class="day-btn active" data-day="0">M</button>
-                            <button class="day-btn active" data-day="1">T</button>
-                            <button class="day-btn active" data-day="2">W</button>
-                            <button class="day-btn active" data-day="3">T</button>
-                            <button class="day-btn active" data-day="4">F</button>
-                            <button class="day-btn active" data-day="5">S</button>
+                            <button class="day-btn active" data-day="0">S</button>
+                            <button class="day-btn active" data-day="1">M</button>
+                            <button class="day-btn active" data-day="2">T</button>
+                            <button class="day-btn active" data-day="3">W</button>
+                            <button class="day-btn active" data-day="4">T</button>
+                            <button class="day-btn active" data-day="5">F</button>
                             <button class="day-btn active" data-day="6">S</button>
                         </div>
                     </div>
@@ -216,6 +217,140 @@
             </div>
         </div>
     </div>
+
+    <!-- NEW: Budget Settings Modal -->
+    <div class="budget-modal">
+        <div class="budget-modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-money-bill-alt"></i> Set Monthly Budget</h3>
+                <button class="close-budget-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="current-budget-display">
+                    <p>Current Monthly Budget:</p>
+                    <h3 id="currentBudgetDisplay">₱15,000</h3>
+                </div>
+                
+                <div class="form-group">
+                    <label for="newBudgetAmount"><i class="fas fa-pencil-alt"></i> New Monthly Budget (₱)</label>
+                    <input type="number" id="newBudgetAmount" class="form-control" min="1000" placeholder="Enter new budget">
+                </div>
+                
+                <div class="budget-tip">
+                    <p><i class="fas fa-lightbulb"></i> <strong>Tip:</strong> Set a realistic budget based on your income and expenses.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancelBudget">Cancel</button>
+                <button class="btn btn-primary" id="confirmBudget">Update Budget</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW: Transfer from Savings Modal -->
+    <div class="transfer-modal">
+        <div class="transfer-modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-exchange-alt"></i> Transfer from Savings</h3>
+                <button class="close-transfer-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="balance-info">
+                    <div class="balance-item">
+                        <p>Savings Balance:</p>
+                        <h3 id="transferSavingsBalance">₱0</h3>
+                    </div>
+                    <div class="balance-item">
+                        <p>Current Budget:</p>
+                        <h3 id="transferBudgetBalance">₱15,000</h3>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="transferAmount"><i class="fas fa-money-bill-wave"></i> Amount to Transfer (₱)</label>
+                    <input type="number" id="transferAmount" class="form-control" min="1" placeholder="Enter amount">
+                </div>
+                
+                <div class="form-group">
+                    <label for="transferReason"><i class="fas fa-sticky-note"></i> Reason for Transfer</label>
+                    <input type="text" id="transferReason" class="form-control" placeholder="e.g., Need extra budget, Emergency">
+                </div>
+                
+                <div class="transfer-warning">
+                    <p><i class="fas fa-exclamation-triangle"></i> <strong>Note:</strong> This will reduce your savings and increase your monthly budget.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancelTransfer">Cancel</button>
+                <button class="btn btn-warning" id="confirmTransfer">Transfer to Budget</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Savings Modal -->
+    <div class="savings-modal">
+        <div class="savings-modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-plus-circle"></i> Add to Savings</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="savingsAmount"><i class="fas fa-money-bill-wave"></i> Amount (₱)</label>
+                    <input type="number" id="savingsAmount" class="form-control" min="1" placeholder="Enter amount">
+                </div>
+                <div class="form-group">
+                    <label for="savingsSource"><i class="fas fa-tag"></i> Source</label>
+                    <select id="savingsSource" class="form-control">
+                        <option value="impulse_avoided">Impulse Purchase Avoided</option>
+                        <option value="budget_leftover">Monthly Budget Leftover</option>
+                        <option value="extra_income">Extra Income</option>
+                        <option value="cashback">Cashback/Rewards</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="savingsDescription"><i class="fas fa-sticky-note"></i> Description</label>
+                    <input type="text" id="savingsDescription" class="form-control" placeholder="What did you save on?">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancelSavings">Cancel</button>
+                <button class="btn btn-success" id="confirmSavings">Add to Wallet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Set Goal Modal -->
+    <div class="goal-modal">
+        <div class="goal-modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-bullseye"></i> Set Savings Goal</h3>
+                <button class="close-goal-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="goalAmount"><i class="fas fa-money-bill-wave"></i> Target Amount (₱)</label>
+                    <input type="number" id="goalAmount" class="form-control" min="100" placeholder="e.g., 10000">
+                </div>
+                <div class="form-group">
+                    <label for="goalDeadline"><i class="fas fa-calendar-alt"></i> Target Date</label>
+                    <input type="date" id="goalDeadline" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="goalPurpose"><i class="fas fa-bullseye"></i> Goal Purpose</label>
+                    <input type="text" id="goalPurpose" class="form-control" placeholder="e.g., Emergency Fund, Vacation">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancelGoal">Cancel</button>
+                <button class="btn btn-primary" id="confirmGoal">Set Goal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
 
     <!-- Landing Page -->
     <section id="landingPage" class="page active">
@@ -613,9 +748,15 @@
                     <h2>Welcome back, <span id="dashboardUsername">User</span>! 💪</h2>
                     <p>Today is a great day to make smart spending choices</p>
                 </div>
-                <button class="btn btn-danger" id="logoutBtn">
-                    <i class="fas fa-sign-out-alt"></i> Log Out
-                </button>
+                <div class="dashboard-actions">
+                    <!-- NEW: Budget Edit Button -->
+                    <button class="btn btn-outline" id="editBudgetBtn" style="margin-right: 10px;">
+                        <i class="fas fa-edit"></i> Edit Budget
+                    </button>
+                    <button class="btn btn-danger" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i> Log Out
+                    </button>
+                </div>
             </div>
             
             <div class="control-panel">
@@ -673,6 +814,16 @@
                         <span>₱0</span>
                         <span id="totalBudget">₱15,000</span>
                     </div>
+                </div>
+                
+                <!-- NEW: Budget Actions -->
+                <div class="budget-actions">
+                    <button class="btn btn-outline" id="transferFromSavingsBtn">
+                        <i class="fas fa-exchange-alt"></i> Transfer from Savings
+                    </button>
+                    <button class="btn btn-primary" id="setBudgetBtn">
+                        <i class="fas fa-cog"></i> Budget Settings
+                    </button>
                 </div>
             </div>
 
@@ -784,7 +935,7 @@
                             <div class="step-number">3</div>
                             <div class="step-content">
                                 <h4>Review Your Budget</h4>
-                                <p>Monitor your monthly budget above. Aim to stay under ₱15,000 for smart spending control.</p>
+                                <p>Monitor your monthly budget above. Click "Budget Settings" to customize your spending limits.</p>
                             </div>
                         </div>
                     </div>
@@ -965,71 +1116,6 @@
             </div>
         </div>
     </section>
-
-    <!-- Savings Modal -->
-    <div class="savings-modal">
-        <div class="savings-modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-plus-circle"></i> Add to Savings</h3>
-                <button class="close-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="savingsAmount"><i class="fas fa-money-bill-wave"></i> Amount (₱)</label>
-                    <input type="number" id="savingsAmount" class="form-control" min="1" placeholder="Enter amount">
-                </div>
-                <div class="form-group">
-                    <label for="savingsSource"><i class="fas fa-tag"></i> Source</label>
-                    <select id="savingsSource" class="form-control">
-                        <option value="impulse_avoided">Impulse Purchase Avoided</option>
-                        <option value="budget_leftover">Monthly Budget Leftover</option>
-                        <option value="extra_income">Extra Income</option>
-                        <option value="cashback">Cashback/Rewards</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="savingsDescription"><i class="fas fa-sticky-note"></i> Description</label>
-                    <input type="text" id="savingsDescription" class="form-control" placeholder="What did you save on?">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" id="cancelSavings">Cancel</button>
-                <button class="btn btn-success" id="confirmSavings">Add to Wallet</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Set Goal Modal -->
-    <div class="goal-modal">
-        <div class="goal-modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-bullseye"></i> Set Savings Goal</h3>
-                <button class="close-goal-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="goalAmount"><i class="fas fa-money-bill-wave"></i> Target Amount (₱)</label>
-                    <input type="number" id="goalAmount" class="form-control" min="100" placeholder="e.g., 10000">
-                </div>
-                <div class="form-group">
-                    <label for="goalDeadline"><i class="fas fa-calendar-alt"></i> Target Date</label>
-                    <input type="date" id="goalDeadline" class="form-control">
-                </div>
-                <div class="form-group">
-                    <label for="goalPurpose"><i class="fas fa-bullseye"></i> Goal Purpose</label>
-                    <input type="text" id="goalPurpose" class="form-control" placeholder="e.g., Emergency Fund, Vacation">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" id="cancelGoal">Cancel</button>
-                <button class="btn btn-primary" id="confirmGoal">Set Goal</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast Container -->
-    <div id="toastContainer"></div>
 
     <script src="script.js"></script>
 </body>

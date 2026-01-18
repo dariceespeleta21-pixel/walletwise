@@ -52,6 +52,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const pendingModal = document.querySelector('.pending-modal');
     const timeblockModal = document.querySelector('.timeblock-modal');
     const progressModal = document.querySelector('.progress-modal');
+    const budgetModal = document.querySelector('.budget-modal');
+    const transferModal = document.querySelector('.transfer-modal');
     
     // Buttons
     const getStartedBtn = document.getElementById('getStartedBtn');
@@ -61,6 +63,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const goToSignupLink = document.getElementById('goToSignupLink');
     const goToLoginLink = document.getElementById('goToLoginLink');
     const continueBtn = document.getElementById('continueBtn');
+    
+    // NEW: Budget & Transfer buttons
+    const editBudgetBtn = document.getElementById('editBudgetBtn');
+    const setBudgetBtn = document.getElementById('setBudgetBtn');
+    const transferFromSavingsBtn = document.getElementById('transferFromSavingsBtn');
     
     // Control panel buttons
     const cartReviewBtn = document.querySelector('.cart-review-btn');
@@ -558,6 +565,116 @@ document.addEventListener('DOMContentLoaded', function() {
             window.spendingChart.data.datasets[0].data = data;
             window.spendingChart.update();
         }
+    }
+    
+    // === NEW FEATURES: BUDGET SETTINGS ===
+    function updateBudgetDisplay() {
+        const currentMonthSpent = getCurrentMonthSpent();
+        const remaining = shoppingBudget - currentMonthSpent;
+        const percentage = Math.min(100, (currentMonthSpent / shoppingBudget) * 100);
+        
+        if (budgetRemainingElement) {
+            budgetRemainingElement.innerHTML = `<strong>₱${remaining.toFixed(0)}</strong> remaining of ₱${shoppingBudget}`;
+        }
+        
+        if (budgetPercentageElement) {
+            budgetPercentageElement.textContent = `${Math.round(percentage)}% Used`;
+            
+            let emoji = '🎯';
+            if (percentage > 80) emoji = '⚠️';
+            if (percentage > 100) emoji = '❌';
+            
+            budgetPercentageElement.nextElementSibling.textContent = `${percentage > 100 ? 'Over budget! ' : 'You\'re on track! '}${emoji}`;
+        }
+        
+        if (totalBudgetElement) {
+            totalBudgetElement.textContent = `₱${shoppingBudget}`;
+        }
+        
+        if (progressFillElement) {
+            progressFillElement.style.width = `${percentage}%`;
+            
+            if (percentage > 80) {
+                progressFillElement.style.background = '#ffc107';
+            } else if (percentage > 100) {
+                progressFillElement.style.background = '#dc3545';
+            } else {
+                progressFillElement.style.background = 'white';
+            }
+        }
+        
+        // Update modals
+        updateBudgetModals();
+        
+        // Save budget to localStorage
+        saveBudget();
+    }
+    
+    function updateBudgetModals() {
+        // Update current budget display in budget modal
+        if (document.getElementById('currentBudgetDisplay')) {
+            document.getElementById('currentBudgetDisplay').textContent = `₱${shoppingBudget}`;
+        }
+        
+        // Update transfer modal displays
+        if (document.getElementById('transferSavingsBalance')) {
+            document.getElementById('transferSavingsBalance').textContent = `₱${savings.balance}`;
+        }
+        if (document.getElementById('transferBudgetBalance')) {
+            document.getElementById('transferBudgetBalance').textContent = `₱${shoppingBudget}`;
+        }
+    }
+    
+    function setNewBudget(newBudget) {
+        if (newBudget < 1000) {
+            showToast('Minimum budget is ₱1,000', 'error');
+            return false;
+        }
+        
+        const oldBudget = shoppingBudget;
+        shoppingBudget = newBudget;
+        
+        updateBudgetDisplay();
+        showToast(`Monthly budget updated from ₱${oldBudget} to ₱${newBudget}`, 'success');
+        
+        return true;
+    }
+    
+    function transferFromSavings(amount, reason) {
+        if (amount <= 0) {
+            showToast('Please enter a valid amount', 'error');
+            return false;
+        }
+        
+        if (amount > savings.balance) {
+            showToast(`Insufficient savings! You only have ₱${savings.balance}`, 'error');
+            return false;
+        }
+        
+        // Deduct from savings
+        savings.balance -= amount;
+        
+        // Add to savings history as a withdrawal
+        const withdrawalEntry = {
+            id: Date.now(),
+            amount: -amount, // Negative amount for withdrawal
+            source: 'budget_transfer',
+            description: reason || `Transferred to budget`,
+            date: new Date().toISOString().split('T')[0]
+        };
+        
+        savings.history.push(withdrawalEntry);
+        
+        // Increase budget
+        const oldBudget = shoppingBudget;
+        shoppingBudget += amount;
+        
+        // Update displays
+        updateSavingsDisplay();
+        updateBudgetDisplay();
+        
+        showToast(`₱${amount} transferred from savings to budget`, 'success');
+        return true;
     }
     
     // === SUCCESS MESSAGE FUNCTIONS (Bottom Part) ===
@@ -1148,7 +1265,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 type = 'success';
                 break;
             default:
-                message = `Purchase logged successfully`;
+                message = `Purchase logged successfully`
         }
         
         showExpenseSuccess(amount, getCategoryName(category));
@@ -1360,42 +1477,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    function updateBudgetDisplay() {
-        const currentMonthSpent = getCurrentMonthSpent();
-        const remaining = shoppingBudget - currentMonthSpent;
-        const percentage = Math.min(100, (currentMonthSpent / shoppingBudget) * 100);
-        
-        if (budgetRemainingElement) {
-            budgetRemainingElement.innerHTML = `<strong>₱${remaining.toFixed(0)}</strong> remaining of ₱${shoppingBudget}`;
-        }
-        
-        if (budgetPercentageElement) {
-            budgetPercentageElement.textContent = `${Math.round(percentage)}% Used`;
-            
-            let emoji = '🎯';
-            if (percentage > 80) emoji = '⚠️';
-            if (percentage > 100) emoji = '❌';
-            
-            budgetPercentageElement.nextElementSibling.textContent = `${percentage > 100 ? 'Over budget! ' : 'You\'re on track! '}${emoji}`;
-        }
-        
-        if (totalBudgetElement) {
-            totalBudgetElement.textContent = `₱${shoppingBudget}`;
-        }
-        
-        if (progressFillElement) {
-            progressFillElement.style.width = `${percentage}%`;
-            
-            if (percentage > 80) {
-                progressFillElement.style.background = '#ffc107';
-            } else if (percentage > 100) {
-                progressFillElement.style.background = '#dc3545';
-            } else {
-                progressFillElement.style.background = 'white';
-            }
-        }
-    }
-    
     // === SAVINGS WALLET FUNCTIONS ===
     function updateSavingsDisplay() {
         // Update balance
@@ -1472,7 +1553,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <h5>${entry.description}</h5>
                     <p>${formatDate(entry.date)} • ${getSavingsSource(entry.source)}</p>
                 </div>
-                <div class="savings-item-amount">+₱${entry.amount.toFixed(0)}</div>
+                <div class="savings-item-amount">${entry.amount >= 0 ? '+' : ''}₱${Math.abs(entry.amount).toFixed(0)}</div>
             </div>
         `).join('');
     }
@@ -1481,6 +1562,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const sources = {
             'impulse_avoided': 'Impulse Avoided',
             'budget_leftover': 'Budget Leftover',
+            'budget_transfer': 'Budget Transfer',
             'extra_income': 'Extra Income',
             'cashback': 'Cashback',
             'other': 'Other'
@@ -1754,21 +1836,31 @@ document.addEventListener('DOMContentLoaded', function() {
         
         updateHeaderButtons();
         
-        if (pageName === 'dashboard' && currentUser) {
-            updateUserDisplay();
-            updateExpenseTable();
-            updateShoppingInsights();
-            updateBudgetDisplay();
-            updateSavingsDisplay();
-            updatePendingCartDisplay();
-            updateTimeBlockDisplay();
-            updateProgressDisplay();
-            
-            // Show empty state guide only if user has no data
-            if (expenses.length === 0 && savings.balance === 0 && pendingItems.length === 0) {
-                document.getElementById('emptyStateGuide').style.display = 'block';
+        if (pageName === 'dashboard') {
+            if (currentUser) {
+                // Load data if not already loaded
+                loadAllData();
+                updateUserDisplay();
+                updateExpenseTable();
+                updateShoppingInsights();
+                updateBudgetDisplay();
+                updateSavingsDisplay();
+                updatePendingCartDisplay();
+                updateTimeBlockDisplay();
+                updateProgressDisplay();
+                
+                // Show empty state guide only if user has no data
+                const emptyStateGuide = document.getElementById('emptyStateGuide');
+                if (emptyStateGuide) {
+                    if (expenses.length === 0 && savings.balance === 0 && pendingItems.length === 0) {
+                        emptyStateGuide.style.display = 'block';
+                    } else {
+                        emptyStateGuide.style.display = 'none';
+                    }
+                }
             } else {
-                document.getElementById('emptyStateGuide').style.display = 'none';
+                // If no user is logged in, go to login page
+                showPage('login');
             }
         }
     }
@@ -1839,6 +1931,101 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.removeItem('walletwise_user');
             showPage('landing');
             showToast("See you soon! Keep making smart spending choices!", 'info');
+        }
+    }
+    
+    // === NEW: BUDGET & TRANSFER MODALS ===
+    function setupBudgetAndTransferModals() {
+        const closeBudgetModal = document.querySelector('.close-budget-modal');
+        const closeTransferModal = document.querySelector('.close-transfer-modal');
+        const cancelBudget = document.getElementById('cancelBudget');
+        const cancelTransfer = document.getElementById('cancelTransfer');
+        const confirmBudget = document.getElementById('confirmBudget');
+        const confirmTransfer = document.getElementById('confirmTransfer');
+        
+        // Open Budget Modal
+        if (editBudgetBtn) {
+            editBudgetBtn.addEventListener('click', openBudgetModal);
+        }
+        
+        if (setBudgetBtn) {
+            setBudgetBtn.addEventListener('click', openBudgetModal);
+        }
+        
+        function openBudgetModal() {
+            document.getElementById('newBudgetAmount').value = shoppingBudget;
+            budgetModal.classList.add('active');
+            document.getElementById('newBudgetAmount').focus();
+        }
+        
+        // Open Transfer Modal
+        if (transferFromSavingsBtn) {
+            transferFromSavingsBtn.addEventListener('click', () => {
+                updateBudgetModals(); // Update the display first
+                transferModal.classList.add('active');
+                document.getElementById('transferAmount').focus();
+            });
+        }
+        
+        // Close modals
+        if (closeBudgetModal) {
+            closeBudgetModal.addEventListener('click', () => {
+                budgetModal.classList.remove('active');
+            });
+        }
+        
+        if (closeTransferModal) {
+            closeTransferModal.addEventListener('click', () => {
+                transferModal.classList.remove('active');
+            });
+        }
+        
+        if (cancelBudget) {
+            cancelBudget.addEventListener('click', () => {
+                budgetModal.classList.remove('active');
+            });
+        }
+        
+        if (cancelTransfer) {
+            cancelTransfer.addEventListener('click', () => {
+                transferModal.classList.remove('active');
+            });
+        }
+        
+        // Confirm Budget Update
+        if (confirmBudget) {
+            confirmBudget.addEventListener('click', () => {
+                const newBudget = parseFloat(document.getElementById('newBudgetAmount').value);
+                
+                if (!newBudget || newBudget < 1000) {
+                    showToast('Please enter a valid budget (minimum ₱1,000)', 'error');
+                    return;
+                }
+                
+                if (setNewBudget(newBudget)) {
+                    budgetModal.classList.remove('active');
+                    document.getElementById('newBudgetAmount').value = '';
+                }
+            });
+        }
+        
+        // Confirm Transfer
+        if (confirmTransfer) {
+            confirmTransfer.addEventListener('click', () => {
+                const amount = parseFloat(document.getElementById('transferAmount').value);
+                const reason = document.getElementById('transferReason').value || 'Transferred to budget';
+                
+                if (!amount || amount <= 0) {
+                    showToast('Please enter a valid amount', 'error');
+                    return;
+                }
+                
+                if (transferFromSavings(amount, reason)) {
+                    transferModal.classList.remove('active');
+                    document.getElementById('transferAmount').value = '';
+                    document.getElementById('transferReason').value = '';
+                }
+            });
         }
     }
     
@@ -2046,11 +2233,10 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
         
-        // Setup new feature modals
+        // Setup all modals
         setupNewFeatureModals();
-        
-        // Setup savings modals
         setupSavingsModals();
+        setupBudgetAndTransferModals();
     }
     
     // === DATA PERSISTENCE ===
@@ -2174,36 +2360,103 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    function loadBudget() {
+        if (currentUser) {
+            const saved = localStorage.getItem(`walletwise_budget_${currentUser.username}`);
+            if (saved) {
+                try {
+                    shoppingBudget = JSON.parse(saved);
+                } catch (error) {
+                    console.error("Error loading budget:", error);
+                    shoppingBudget = 15000;
+                }
+            }
+        }
+    }
+    
+    function saveBudget() {
+        if (currentUser) {
+            localStorage.setItem(`walletwise_budget_${currentUser.username}`, JSON.stringify(shoppingBudget));
+        }
+    }
+    
     function loadAllData() {
+        if (!currentUser) return;
+        
+        console.log("📂 Loading all data for user:", currentUser.username);
+        
         loadExpenses();
         loadSavings();
         loadPendingItems();
         loadTimeBlockSettings();
         loadProgressStats();
+        loadBudget(); // NEW: Load budget
+        
+        console.log("✅ Data loaded successfully");
+        console.log("Expenses:", expenses.length);
+        console.log("Savings:", savings.balance);
+        console.log("Pending items:", pendingItems.length);
+        console.log("Budget:", shoppingBudget);
     }
     
-    // === INITIALIZATION ===
+    // === INITIALIZATION - FIXED VERSION ===
     function initApp() {
         console.log("🚀 Initializing WalletWise...");
         
         // Check if user is already logged in
         const savedUser = localStorage.getItem('walletwise_user');
+        console.log("🔍 Checking saved user:", savedUser);
+        
         if (savedUser) {
             try {
                 currentUser = JSON.parse(savedUser);
-                showPage('dashboard');
+                console.log("✅ User found:", currentUser.username);
+                
+                // CRITICAL: Load ALL user data BEFORE showing dashboard
                 loadAllData();
+                
+                // IMPORTANT: Immediately show dashboard
+                setTimeout(() => {
+                    // Hide all pages first
+                    pages.landing.classList.remove('active');
+                    pages.login.classList.remove('active');
+                    pages.signup.classList.remove('active');
+                    pages.dashboard.classList.remove('active');
+                    
+                    // Show dashboard
+                    pages.dashboard.classList.add('active');
+                    
+                    // Update all displays
+                    updateUserDisplay();
+                    updateExpenseTable();
+                    updateShoppingInsights();
+                    updateBudgetDisplay();
+                    updateSavingsDisplay();
+                    updatePendingCartDisplay();
+                    updateTimeBlockDisplay();
+                    updateProgressDisplay();
+                    updateHeaderButtons();
+                    
+                    console.log("✅ Dashboard loaded successfully!");
+                }, 100);
+                
                 showToast(`Welcome back, ${currentUser.username}!`, 'success');
+                
             } catch (error) {
-                console.error("Error loading user:", error);
+                console.error("❌ Error loading user:", error);
+                currentUser = null;
+                localStorage.removeItem('walletwise_user');
                 showPage('landing');
             }
         } else {
+            console.log("❌ No user found, showing landing page");
             showPage('landing');
         }
         
         // Set current date in expense form
-        document.getElementById('expenseDate').value = new Date().toISOString().split('T')[0];
+        if (document.getElementById('expenseDate')) {
+            document.getElementById('expenseDate').value = new Date().toISOString().split('T')[0];
+        }
         
         // Initialize input validation
         setupInputValidation();
@@ -2214,10 +2467,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Initialize display
         updatePendingCartDisplay();
         updateTimeBlockDisplay();
+        updateBudgetModals();
         
         // Start timer for pending items countdown
         setInterval(() => {
-            if (pendingModal.classList.contains('active')) {
+            if (pendingModal && pendingModal.classList.contains('active')) {
                 updatePendingItemsDisplay();
             }
         }, 1000);
@@ -2227,6 +2481,19 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // === START THE APP ===
     initApp();
+    
+    // === DEBUG FUNCTION ===
+    function debugLocalStorage() {
+        console.log("🔍 DEBUG: Checking localStorage...");
+        console.log("walletwise_user:", localStorage.getItem('walletwise_user'));
+        
+        if (currentUser) {
+            console.log("Current user:", currentUser.username);
+            console.log("Expenses key:", localStorage.getItem(`walletwise_expenses_${currentUser.username}`));
+            console.log("Savings key:", localStorage.getItem(`walletwise_savings_${currentUser.username}`));
+            console.log("Budget key:", localStorage.getItem(`walletwise_budget_${currentUser.username}`));
+        }
+    }
     
     // === EXPORT FOR DEBUGGING ===
     window.WalletWise = {
@@ -2246,75 +2513,11 @@ document.addEventListener('DOMContentLoaded', function() {
         updateExpenseTable,
         addPendingItem,
         removePendingItem,
-        buyPendingItem
+        buyPendingItem,
+        setNewBudget,
+        transferFromSavings,
+        debugLocalStorage
     };
     
     console.log("✅ WalletWise initialized successfully!");
 });
-
-// CSS for additional styles if needed
-const additionalCSS = `
-    .empty-state-guide {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 30px;
-        border-radius: 15px;
-        margin: 20px 0;
-        text-align: center;
-    }
-    
-    .empty-state-guide h3 {
-        margin-bottom: 15px;
-        font-size: 24px;
-    }
-    
-    .empty-state-guide p {
-        margin-bottom: 20px;
-        opacity: 0.9;
-    }
-    
-    .empty-state-guide .steps {
-        display: flex;
-        justify-content: center;
-        gap: 20px;
-        margin-top: 25px;
-        flex-wrap: wrap;
-    }
-    
-    .empty-state-guide .step {
-        background: rgba(255, 255, 255, 0.1);
-        padding: 15px;
-        border-radius: 10px;
-        width: 120px;
-    }
-    
-    .empty-state-guide .step-icon {
-        font-size: 24px;
-        margin-bottom: 10px;
-    }
-    
-    .pulse {
-        animation: pulse 0.5s ease-in-out;
-    }
-    
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.02); }
-        100% { transform: scale(1); }
-    }
-    
-    .shake {
-        animation: shake 0.5s ease-in-out;
-    }
-    
-    @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-10px); }
-        75% { transform: translateX(10px); }
-    }
-`;
-
-// Add the CSS to the document
-const style = document.createElement('style');
-style.textContent = additionalCSS;
-document.head.appendChild(style);
