@@ -15,6 +15,25 @@ document.addEventListener('DOMContentLoaded', function() {
         achievements: []
     };
     
+    // === NEW FEATURES STATE ===
+    let pendingItems = []; // 24-hour pending items
+    let timeBlockSettings = {
+        active: false,
+        startTime: "20:00", // 8 PM
+        endTime: "23:00",   // 11 PM
+        days: [0, 1, 2, 3, 4, 5, 6], // All days (0=Sun, 6=Sat)
+        blockEvening: true,
+        blockLateNight: false,
+        blockWeekends: false
+    };
+    
+    let progressStats = {
+        lastImpulseBuy: null,
+        totalSaved: 0,
+        impulseReduction: 0,
+        streakDays: 0
+    };
+    
     // === DOM ELEMENTS ===
     const pages = {
         landing: document.getElementById('landingPage'),
@@ -29,6 +48,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const welcomeAnimation = document.querySelector('.welcome-animation');
     const toastContainer = document.getElementById('toastContainer');
     
+    // New feature modals
+    const pendingModal = document.querySelector('.pending-modal');
+    const timeblockModal = document.querySelector('.timeblock-modal');
+    const progressModal = document.querySelector('.progress-modal');
+    
     // Buttons
     const getStartedBtn = document.getElementById('getStartedBtn');
     const logoutBtn = document.getElementById('logoutBtn');
@@ -37,6 +61,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const goToSignupLink = document.getElementById('goToSignupLink');
     const goToLoginLink = document.getElementById('goToLoginLink');
     const continueBtn = document.getElementById('continueBtn');
+    
+    // Control panel buttons
+    const cartReviewBtn = document.querySelector('.cart-review-btn');
+    const timeBlockBtn = document.querySelector('.time-block-btn');
+    const progressBtn = document.querySelector('.progress-btn');
     
     // Forms
     const loginForm = document.getElementById('loginForm');
@@ -62,6 +91,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const budgetPercentageElement = document.getElementById('budgetPercentage');
     const totalBudgetElement = document.getElementById('totalBudget');
     const progressFillElement = document.getElementById('progressFill');
+    
+    // New feature elements
+    const pendingCartCount = document.getElementById('pendingCartCount');
+    const pendingCartAmount = document.getElementById('pendingCartAmount');
+    const blockTime = document.getElementById('blockTime');
+    const blockStatusText = document.getElementById('blockStatusText');
     
     // === TOAST NOTIFICATION SYSTEM ===
     function showToast(message, type = 'info', duration = 4000) {
@@ -117,6 +152,412 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             welcomeAnimation.classList.remove('active');
         }, 3000);
+    }
+    
+    // === NEW FEATURES: 24-HOUR PENDING ITEMS ===
+    function updatePendingCartDisplay() {
+        const count = pendingItems.length;
+        const total = pendingItems.reduce((sum, item) => sum + item.amount, 0);
+        
+        if (pendingCartCount) {
+            pendingCartCount.textContent = `${count} ${count === 1 ? 'item' : 'items'}`;
+        }
+        
+        if (pendingCartAmount) {
+            pendingCartAmount.textContent = total;
+        }
+        
+        // Update the cart review button
+        if (cartReviewBtn) {
+            cartReviewBtn.querySelector('span').textContent = total;
+        }
+    }
+    
+    function addPendingItem(description, platform, amount) {
+        const newItem = {
+            id: Date.now(),
+            description: description,
+            platform: platform,
+            amount: amount,
+            addedAt: new Date().toISOString(),
+            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours from now
+        };
+        
+        pendingItems.push(newItem);
+        updatePendingCartDisplay();
+        savePendingItems();
+        
+        showToast(`Item added to 24-hour waiting list. Think about it!`, 'info');
+    }
+    
+    function removePendingItem(id) {
+        const itemIndex = pendingItems.findIndex(item => item.id === id);
+        if (itemIndex === -1) return;
+        
+        const removedItem = pendingItems[itemIndex];
+        pendingItems.splice(itemIndex, 1);
+        updatePendingCartDisplay();
+        savePendingItems();
+        
+        // Add savings when user removes a pending item
+        const savingsAmount = Math.round(removedItem.amount * 0.4);
+        addSavingsEntry(savingsAmount, 'impulse_avoided', `Avoided purchase: ${removedItem.description}`);
+        
+        showToast(`Item removed! ₱${savingsAmount} added to savings!`, 'success');
+    }
+    
+    function buyPendingItem(id) {
+        const itemIndex = pendingItems.findIndex(item => item.id === id);
+        if (itemIndex === -1) return;
+        
+        const item = pendingItems[itemIndex];
+        
+        // Add as an expense
+        const newExpense = {
+            id: Date.now(),
+            date: new Date().toISOString().split('T')[0],
+            platform: item.platform,
+            description: item.description,
+            category: 'other',
+            amount: item.amount,
+            purchaseType: 'planned',
+            loggedAt: new Date().toISOString()
+        };
+        
+        addExpense(newExpense);
+        
+        // Remove from pending
+        pendingItems.splice(itemIndex, 1);
+        updatePendingCartDisplay();
+        savePendingItems();
+        
+        showToast(`Purchase completed! ₱${item.amount} logged as expense.`, 'success');
+    }
+    
+    function updatePendingItemsDisplay() {
+        const pendingList = document.getElementById('pendingList');
+        const pendingCount = document.getElementById('pendingCount');
+        const pendingTotal = document.getElementById('pendingTotal');
+        const potentialSavings = document.getElementById('potentialSavings');
+        const buyAllBtn = document.getElementById('buyAllBtn');
+        
+        if (!pendingList) return;
+        
+        // Update summary
+        if (pendingCount) pendingCount.textContent = pendingItems.length;
+        if (pendingTotal) {
+            const total = pendingItems.reduce((sum, item) => sum + item.amount, 0);
+            pendingTotal.textContent = total;
+        }
+        if (potentialSavings) {
+            const savings = Math.round(pendingItems.reduce((sum, item) => sum + item.amount, 0) * 0.4);
+            potentialSavings.textContent = savings;
+        }
+        if (buyAllBtn) {
+            const total = pendingItems.reduce((sum, item) => sum + item.amount, 0);
+            buyAllBtn.innerHTML = `<i class="fas fa-shopping-cart"></i> Buy All (₱${total})`;
+        }
+        
+        // Clear current list
+        pendingList.innerHTML = '';
+        
+        if (pendingItems.length === 0) {
+            pendingList.innerHTML = `
+                <div class="empty-pending">
+                    <p>No items in 24-hour waiting period. Great self-control! 🎉</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // Add each pending item
+        pendingItems.forEach(item => {
+            const timeLeft = calculateTimeLeft(item.expiresAt);
+            const itemElement = document.createElement('div');
+            itemElement.className = 'pending-item';
+            itemElement.dataset.id = item.id;
+            
+            itemElement.innerHTML = `
+                <div class="pending-item-header">
+                    <div class="pending-item-title">
+                        <h5>${item.description}</h5>
+                        <span class="pending-item-platform">${getPlatformName(item.platform)}</span>
+                    </div>
+                    <div class="pending-item-price">₱${item.amount}</div>
+                </div>
+                
+                <div class="pending-item-timer">
+                    <div class="timer-icon">⏰</div>
+                    <div class="timer-text">
+                        <p>Time remaining to decide:</p>
+                        <div class="timer-countdown">${timeLeft}</div>
+                    </div>
+                </div>
+                
+                <div class="pending-item-actions">
+                    <button class="btn btn-success buy-item-btn" data-id="${item.id}">
+                        <i class="fas fa-check"></i> Buy Now
+                    </button>
+                    <button class="btn btn-danger remove-item-btn" data-id="${item.id}">
+                        <i class="fas fa-times"></i> Remove
+                    </button>
+                    <button class="btn btn-outline wait-more-btn" data-id="${item.id}">
+                        <i class="fas fa-clock"></i> Wait More
+                    </button>
+                </div>
+            `;
+            
+            pendingList.appendChild(itemElement);
+        });
+        
+        // Add event listeners
+        document.querySelectorAll('.buy-item-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = parseInt(this.dataset.id);
+                buyPendingItem(id);
+            });
+        });
+        
+        document.querySelectorAll('.remove-item-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = parseInt(this.dataset.id);
+                removePendingItem(id);
+            });
+        });
+        
+        document.querySelectorAll('.wait-more-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = parseInt(this.dataset.id);
+                extendPendingItem(id);
+            });
+        });
+    }
+    
+    function calculateTimeLeft(expiresAt) {
+        const now = new Date();
+        const expireDate = new Date(expiresAt);
+        const diffMs = expireDate - now;
+        
+        if (diffMs <= 0) return "00:00:00";
+        
+        const hours = Math.floor(diffMs / (1000 * 60 * 60));
+        const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+        
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    
+    function extendPendingItem(id) {
+        const item = pendingItems.find(item => item.id === id);
+        if (!item) return;
+        
+        // Add 12 more hours
+        const newExpiresAt = new Date(new Date(item.expiresAt).getTime() + 12 * 60 * 60 * 1000);
+        item.expiresAt = newExpiresAt.toISOString();
+        savePendingItems();
+        
+        showToast(`Extended waiting period by 12 hours. Good discipline!`, 'info');
+        updatePendingItemsDisplay();
+    }
+    
+    // === NEW FEATURES: TIME BLOCK ===
+    function updateTimeBlockDisplay() {
+        if (blockTime) {
+            blockTime.textContent = `${timeBlockSettings.startTime}-${timeBlockSettings.endTime}`;
+        }
+        
+        if (blockStatusText) {
+            blockStatusText.textContent = timeBlockSettings.active ? 'Active' : 'Set Block';
+        }
+        
+        // Update modal display
+        const timeblockStatus = document.getElementById('timeblockStatus');
+        if (timeblockStatus) {
+            timeblockStatus.textContent = timeBlockSettings.active ? 'Active - Protection Enabled' : 'Not active';
+            timeblockStatus.className = timeBlockSettings.active ? 'status-active' : '';
+        }
+        
+        // Update checkboxes in modal
+        const blockEvening = document.getElementById('blockEvening');
+        const blockLateNight = document.getElementById('blockLateNight');
+        const blockWeekends = document.getElementById('blockWeekends');
+        
+        if (blockEvening) blockEvening.checked = timeBlockSettings.blockEvening;
+        if (blockLateNight) blockLateNight.checked = timeBlockSettings.blockLateNight;
+        if (blockWeekends) blockWeekends.checked = timeBlockSettings.blockWeekends;
+        
+        // Update time inputs
+        const blockStart = document.getElementById('blockStart');
+        const blockEnd = document.getElementById('blockEnd');
+        
+        if (blockStart) blockStart.value = timeBlockSettings.startTime;
+        if (blockEnd) blockEnd.value = timeBlockSettings.endTime;
+        
+        // Update day buttons
+        document.querySelectorAll('.day-btn').forEach(btn => {
+            const day = parseInt(btn.dataset.day);
+            if (timeBlockSettings.days.includes(day)) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    }
+    
+    function checkTimeBlock() {
+        if (!timeBlockSettings.active) return false;
+        
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+        const currentDay = now.getDay();
+        
+        // Check if current day is blocked
+        if (!timeBlockSettings.days.includes(currentDay)) {
+            return false;
+        }
+        
+        // Parse start and end times
+        const [startHour, startMinute] = timeBlockSettings.startTime.split(':').map(Number);
+        const [endHour, endMinute] = timeBlockSettings.endTime.split(':').map(Number);
+        
+        // Convert current time to minutes since midnight
+        const currentTotalMinutes = currentHour * 60 + currentMinute;
+        const startTotalMinutes = startHour * 60 + startMinute;
+        const endTotalMinutes = endHour * 60 + endMinute;
+        
+        // Check if current time is within blocked period
+        if (currentTotalMinutes >= startTotalMinutes && currentTotalMinutes <= endTotalMinutes) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    // === NEW FEATURES: PROGRESS REPORT ===
+    function updateProgressDisplay() {
+        // Calculate progress stats
+        const now = new Date();
+        let daysSinceImpulse = 0;
+        
+        if (progressStats.lastImpulseBuy) {
+            const lastImpulseDate = new Date(progressStats.lastImpulseBuy);
+            const diffTime = Math.abs(now - lastImpulseDate);
+            daysSinceImpulse = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        }
+        
+        // Update modal display
+        const progressDays = document.getElementById('progressDays');
+        const progressSaved = document.getElementById('progressSaved');
+        const progressReduction = document.getElementById('progressReduction');
+        
+        if (progressDays) progressDays.textContent = daysSinceImpulse;
+        if (progressSaved) progressSaved.textContent = progressStats.totalSaved;
+        if (progressReduction) progressReduction.textContent = progressStats.impulseReduction;
+        
+        // Update milestones
+        updateMilestones();
+        
+        // Update chart
+        updateSpendingChart();
+    }
+    
+    function updateMilestones() {
+        const milestones = document.querySelectorAll('.milestone');
+        
+        milestones.forEach(milestone => {
+            const title = milestone.querySelector('h5').textContent;
+            const progressFill = milestone.querySelector('.progress-fill');
+            const progressText = milestone.querySelector('span');
+            
+            let progress = 0;
+            let total = 100;
+            let current = 0;
+            
+            if (title === '7 Days Clean') {
+                const now = new Date();
+                if (progressStats.lastImpulseBuy) {
+                    const lastImpulseDate = new Date(progressStats.lastImpulseBuy);
+                    const diffTime = Math.abs(now - lastImpulseDate);
+                    current = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                }
+                total = 7;
+                progress = Math.min(100, (current / total) * 100);
+                progressText.textContent = `${current}/${total} days`;
+            } else if (title === 'Save ₱5,000') {
+                current = savings.balance;
+                total = 5000;
+                progress = Math.min(100, (current / total) * 100);
+                progressText.textContent = `₱${current}/₱${total}`;
+            } else if (title === 'Reduce by 50%') {
+                current = progressStats.impulseReduction;
+                total = 50;
+                progress = Math.min(100, (current / total) * 100);
+                progressText.textContent = `${current}%/50%`;
+            }
+            
+            progressFill.style.width = `${progress}%`;
+            
+            if (progress >= 100) {
+                milestone.dataset.completed = "true";
+                milestone.style.backgroundColor = '#e8f5e9';
+                milestone.style.borderColor = '#4caf50';
+            }
+        });
+    }
+    
+    function updateSpendingChart() {
+        const ctx = document.getElementById('spendingChart');
+        if (!ctx) return;
+        
+        // Create sample data for the chart
+        const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+        const data = [12000, 11000, 9000, 8000, 7000, 6500]; // Decreasing spending
+        
+        // Create chart if it doesn't exist
+        if (!window.spendingChart) {
+            window.spendingChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Monthly Spending (₱)',
+                        data: data,
+                        borderColor: '#2d5be3',
+                        backgroundColor: 'rgba(45, 91, 227, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        } else {
+            // Update existing chart
+            window.spendingChart.data.datasets[0].data = data;
+            window.spendingChart.update();
+        }
     }
     
     // === SUCCESS MESSAGE FUNCTIONS (Bottom Part) ===
@@ -193,7 +634,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                     goToDashboardBtn.addEventListener('click', () => {
                                         signupCompletion.classList.remove('show');
                                         showPage('dashboard');
-                                        addWelcomeExpense();
                                     });
                                 }
                             }
@@ -538,8 +978,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 setTimeout(() => {
                     showPage('dashboard');
-                    loadExpenses();
-                    loadSavings();
+                    loadAllData();
                 }, 3200);
                 
             } else {
@@ -626,12 +1065,34 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (!validateExpenseForm()) return;
         
+        // Check if time block is active
+        if (checkTimeBlock()) {
+            const proceed = confirm("⏰ Time Block Active!\n\nYou're in a high-risk shopping period. Are you sure you want to make this purchase?\n\nConsider waiting until the time block ends.");
+            if (!proceed) {
+                showToast('Purchase cancelled due to active time block.', 'warning');
+                return;
+            }
+        }
+        
         const date = document.getElementById('expenseDate').value;
         const platform = document.getElementById('shoppingPlatform').value;
         const amount = parseFloat(document.getElementById('expenseAmount').value);
         const category = document.getElementById('expenseCategory').value;
         const description = document.getElementById('expenseDescription').value.trim();
         const purchaseType = document.getElementById('purchaseType').value;
+        
+        // Check if impulse purchase - suggest adding to 24-hour list
+        if (purchaseType === 'impulse' || purchaseType === 'emotional') {
+            const addToPending = confirm(`⚠️ Impulse/Emotional Purchase Detected!\n\nConsider adding this to your 24-hour waiting list:\n\n${description} - ₱${amount}\n\nAdd to 24-hour list instead of buying now?`);
+            
+            if (addToPending) {
+                addPendingItem(description, platform, amount);
+                expenseForm.reset();
+                document.getElementById('expenseDate').value = new Date().toISOString().split('T')[0];
+                showToast('Item added to 24-hour waiting list! Think about it for a day.', 'success');
+                return;
+            }
+        }
         
         const currentMonthSpent = getCurrentMonthSpent();
         if (currentMonthSpent + amount > shoppingBudget) {
@@ -655,6 +1116,12 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         
         addExpense(newExpense);
+        
+        // Update progress stats for impulse purchases
+        if (purchaseType === 'impulse' || purchaseType === 'emotional') {
+            progressStats.lastImpulseBuy = new Date().toISOString();
+            saveProgressStats();
+        }
         
         // Auto-add savings for planned purchases over ₱500
         if (purchaseType === 'planned' && amount > 500) {
@@ -793,7 +1260,7 @@ document.addEventListener('DOMContentLoaded', function() {
             expenseTableBody.innerHTML = `
                 <tr>
                     <td colspan="7" style="text-align: center; padding: 40px; color: #999;">
-                        No shopping expenses logged yet. Start tracking to see insights!
+                        No shopping expenses logged yet. Log your first expense below!
                     </td>
                 </tr>
             `;
@@ -869,15 +1336,27 @@ document.addEventListener('DOMContentLoaded', function() {
         const reductionPercentElement = document.getElementById('reductionPercent');
         
         if (shoppingPatternElement) {
-            shoppingPatternElement.innerHTML = `You shop most on <strong>${getMostCommonShoppingDay()}</strong> between <strong>${getMostCommonShoppingTime()}</strong>`;
+            if (expenses.length === 0) {
+                shoppingPatternElement.innerHTML = `Start logging expenses to see your shopping patterns`;
+            } else {
+                shoppingPatternElement.innerHTML = `You shop most on <strong>${getMostCommonShoppingDay()}</strong> between <strong>${getMostCommonShoppingTime()}</strong>`;
+            }
         }
         
         if (emotionalTriggersElement) {
-            emotionalTriggersElement.innerHTML = `${getImpulsePercentage()}% of your impulse buys occur when you're <strong>bored</strong> or <strong>stressed</strong>`;
+            if (expenses.length === 0) {
+                emotionalTriggersElement.innerHTML = `Log expenses to identify your shopping triggers`;
+            } else {
+                emotionalTriggersElement.innerHTML = `${getImpulsePercentage()}% of your impulse buys occur when you're <strong>bored</strong> or <strong>stressed</strong>`;
+            }
         }
         
         if (reductionPercentElement) {
-            reductionPercentElement.textContent = `${calculateReductionPercentage()}%`;
+            if (expenses.length < 2) {
+                reductionPercentElement.textContent = `0%`;
+            } else {
+                reductionPercentElement.textContent = `${calculateReductionPercentage()}%`;
+            }
         }
     }
     
@@ -1052,6 +1531,10 @@ document.addEventListener('DOMContentLoaded', function() {
         savings.balance += amount;
         savings.history.push(newEntry);
         
+        // Update progress stats
+        progressStats.totalSaved += amount;
+        saveProgressStats();
+        
         updateSavingsDisplay();
         
         // Check for automatic savings from avoided impulse purchases
@@ -1141,34 +1624,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 showToast(`Savings goal updated to ₱${goal.toFixed(0)}!`, 'success');
             });
-        }
-    }
-    
-    function saveSavings() {
-        if (currentUser) {
-            localStorage.setItem(`walletwise_savings_${currentUser.username}`, JSON.stringify(savings));
-        }
-    }
-    
-    function loadSavings() {
-        if (currentUser) {
-            const saved = localStorage.getItem(`walletwise_savings_${currentUser.username}`);
-            if (saved) {
-                try {
-                    savings = JSON.parse(saved);
-                    updateSavingsDisplay();
-                } catch (error) {
-                    console.error("Error loading savings:", error);
-                    savings = {
-                        balance: 0,
-                        goal: 10000,
-                        goalDeadline: null,
-                        goalPurpose: "Emergency Fund",
-                        history: [],
-                        achievements: []
-                    };
-                }
-            }
         }
     }
     
@@ -1305,6 +1760,16 @@ document.addEventListener('DOMContentLoaded', function() {
             updateShoppingInsights();
             updateBudgetDisplay();
             updateSavingsDisplay();
+            updatePendingCartDisplay();
+            updateTimeBlockDisplay();
+            updateProgressDisplay();
+            
+            // Show empty state guide only if user has no data
+            if (expenses.length === 0 && savings.balance === 0 && pendingItems.length === 0) {
+                document.getElementById('emptyStateGuide').style.display = 'block';
+            } else {
+                document.getElementById('emptyStateGuide').style.display = 'none';
+            }
         }
     }
     
@@ -1377,6 +1842,161 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    function setupNewFeatureModals() {
+        // 24-Hour Pending Modal
+        const closePendingModal = document.querySelector('.close-pending-modal');
+        const buyAllBtn = document.getElementById('buyAllBtn');
+        const removeAllBtn = document.getElementById('removeAllBtn');
+        
+        if (cartReviewBtn) {
+            cartReviewBtn.addEventListener('click', () => {
+                updatePendingItemsDisplay();
+                pendingModal.classList.add('active');
+            });
+        }
+        
+        if (closePendingModal) {
+            closePendingModal.addEventListener('click', () => {
+                pendingModal.classList.remove('active');
+            });
+        }
+        
+        if (buyAllBtn) {
+            buyAllBtn.addEventListener('click', () => {
+                // Buy all pending items
+                const itemsToBuy = [...pendingItems];
+                pendingItems = [];
+                
+                itemsToBuy.forEach(item => {
+                    const newExpense = {
+                        id: Date.now(),
+                        date: new Date().toISOString().split('T')[0],
+                        platform: item.platform,
+                        description: item.description,
+                        category: 'other',
+                        amount: item.amount,
+                        purchaseType: 'planned',
+                        loggedAt: new Date().toISOString()
+                    };
+                    
+                    addExpense(newExpense);
+                });
+                
+                updatePendingCartDisplay();
+                savePendingItems();
+                updatePendingItemsDisplay();
+                
+                showToast(`All ${itemsToBuy.length} items purchased!`, 'success');
+            });
+        }
+        
+        if (removeAllBtn) {
+            removeAllBtn.addEventListener('click', () => {
+                if (pendingItems.length === 0) return;
+                
+                const totalAmount = pendingItems.reduce((sum, item) => sum + item.amount, 0);
+                const savingsAmount = Math.round(totalAmount * 0.4);
+                
+                // Remove all items and add savings
+                pendingItems = [];
+                updatePendingCartDisplay();
+                savePendingItems();
+                updatePendingItemsDisplay();
+                
+                addSavingsEntry(savingsAmount, 'impulse_avoided', `Avoided ${pendingItems.length} impulse purchases`);
+                
+                showToast(`All items removed! ₱${savingsAmount} added to savings!`, 'success');
+            });
+        }
+        
+        // Time Block Modal
+        const closeTimeblockModal = document.querySelector('.close-timeblock-modal');
+        const activateBlockBtn = document.getElementById('activateBlockBtn');
+        const deactivateBlockBtn = document.getElementById('deactivateBlockBtn');
+        const blockStart = document.getElementById('blockStart');
+        const blockEnd = document.getElementById('blockEnd');
+        const dayButtons = document.querySelectorAll('.day-btn');
+        
+        if (timeBlockBtn) {
+            timeBlockBtn.addEventListener('click', () => {
+                updateTimeBlockDisplay();
+                timeblockModal.classList.add('active');
+            });
+        }
+        
+        if (closeTimeblockModal) {
+            closeTimeblockModal.addEventListener('click', () => {
+                timeblockModal.classList.remove('active');
+            });
+        }
+        
+        if (activateBlockBtn) {
+            activateBlockBtn.addEventListener('click', () => {
+                timeBlockSettings.active = true;
+                
+                // Update settings from form
+                if (blockStart) timeBlockSettings.startTime = blockStart.value;
+                if (blockEnd) timeBlockSettings.endTime = blockEnd.value;
+                
+                // Update days from buttons
+                const activeDays = [];
+                dayButtons.forEach(btn => {
+                    if (btn.classList.contains('active')) {
+                        activeDays.push(parseInt(btn.dataset.day));
+                    }
+                });
+                timeBlockSettings.days = activeDays;
+                
+                // Update checkboxes
+                const blockEvening = document.getElementById('blockEvening');
+                const blockLateNight = document.getElementById('blockLateNight');
+                const blockWeekends = document.getElementById('blockWeekends');
+                
+                if (blockEvening) timeBlockSettings.blockEvening = blockEvening.checked;
+                if (blockLateNight) timeBlockSettings.blockLateNight = blockLateNight.checked;
+                if (blockWeekends) timeBlockSettings.blockWeekends = blockWeekends.checked;
+                
+                saveTimeBlockSettings();
+                updateTimeBlockDisplay();
+                
+                showToast('Time block protection activated! 🛡️', 'success');
+            });
+        }
+        
+        if (deactivateBlockBtn) {
+            deactivateBlockBtn.addEventListener('click', () => {
+                timeBlockSettings.active = false;
+                saveTimeBlockSettings();
+                updateTimeBlockDisplay();
+                
+                showToast('Time block protection deactivated.', 'info');
+            });
+        }
+        
+        // Day button toggles
+        dayButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.classList.toggle('active');
+            });
+        });
+        
+        // Progress Modal
+        const closeProgressModal = document.querySelector('.close-progress-modal');
+        
+        if (progressBtn) {
+            progressBtn.addEventListener('click', () => {
+                updateProgressDisplay();
+                progressModal.classList.add('active');
+            });
+        }
+        
+        if (closeProgressModal) {
+            closeProgressModal.addEventListener('click', () => {
+                progressModal.classList.remove('active');
+            });
+        }
+    }
+    
     function setupEventListeners() {
         if (getStartedBtn) {
             getStartedBtn.addEventListener('click', () => showPage('signup'));
@@ -1426,30 +2046,11 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
         
-        // Enhanced dashboard buttons
-        document.querySelectorAll('.cart-review-btn, .time-block-btn, .progress-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                if (this.classList.contains('cart-review-btn')) {
-                    const savingsAmount = Math.round(2000 * 0.2); // 20% of cart value
-                    addSavingsEntry(savingsAmount, 'impulse_avoided', '24-hour rule applied on cart items');
-                    
-                    showSuccess(
-                        `Excellent discipline! 🎉\n\nYou avoided ₱2,000 in impulse purchases by reviewing your cart.\n\n₱${savingsAmount} has been added to your Savings Wallet!\n\nRemember: Wait 24 hours before making impulse purchases.`,
-                        'View Savings'
-                    );
-                } else if (this.classList.contains('time-block-btn')) {
-                    showSuccess(
-                        `Time block activated! ⏰\n\nShopping websites will be blocked between 8-10 PM.\n\nYou'll get a reminder to avoid shopping during these high-risk hours.\n\nThis helps break the habit of late-night shopping.`,
-                        'Continue'
-                    );
-                } else if (this.classList.contains('progress-btn')) {
-                    showSuccess(
-                        `Your Progress Report 📊\n\n• Impulse buys reduced by 65%\n• Monthly savings: ₱2,500\n• Budget adherence: 92%\n• Savings goal progress: ${Math.round((savings.balance / savings.goal) * 100)}%\n\nKeep up the great work! Your financial freedom is getting closer!`,
-                        'View Details'
-                    );
-                }
-            });
-        });
+        // Setup new feature modals
+        setupNewFeatureModals();
+        
+        // Setup savings modals
+        setupSavingsModals();
     }
     
     // === DATA PERSISTENCE ===
@@ -1459,9 +2060,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (saved) {
                 try {
                     expenses = JSON.parse(saved);
-                    updateExpenseTable();
-                    updateShoppingInsights();
-                    updateBudgetDisplay();
                 } catch (error) {
                     console.error("Error loading expenses:", error);
                     expenses = [];
@@ -1476,110 +2074,247 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // === SAMPLE DATA ===
-    function loadSampleShoppingData() {
-        const sampleExpenses = [
-            {
-                id: 1,
-                date: new Date().toISOString().split('T')[0],
-                platform: 'shopee',
-                description: 'Wireless Earbuds',
-                category: 'electronics',
-                amount: 1200,
-                purchaseType: 'impulse'
-            },
-            {
-                id: 2,
-                date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                platform: 'lazada',
-                description: 'Winter Jacket',
-                category: 'fashion',
-                amount: 2500,
-                purchaseType: 'impulse'
-            },
-            {
-                id: 3,
-                date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                platform: 'foodpanda',
-                description: 'Weekly Groceries',
-                category: 'food',
-                amount: 3800,
-                purchaseType: 'planned'
+    function loadSavings() {
+        if (currentUser) {
+            const saved = localStorage.getItem(`walletwise_savings_${currentUser.username}`);
+            if (saved) {
+                try {
+                    savings = JSON.parse(saved);
+                } catch (error) {
+                    console.error("Error loading savings:", error);
+                    savings = {
+                        balance: 0,
+                        goal: 10000,
+                        goalDeadline: null,
+                        goalPurpose: "Emergency Fund",
+                        history: [],
+                        achievements: []
+                    };
+                }
             }
-        ];
-        
-        expenses.push(...sampleExpenses);
-        updateExpenseTable();
-        updateShoppingInsights();
-        updateBudgetDisplay();
-        saveExpenses();
-        
-        // Add sample savings
-        addSavingsEntry(500, 'impulse_avoided', 'Avoided unnecessary gadgets');
-        addSavingsEntry(800, 'budget_leftover', 'Monthly budget savings');
+        }
     }
     
-    function addWelcomeExpense() {
-        const welcomeExpense = {
-            id: Date.now(),
-            date: new Date().toISOString().split('T')[0],
-            platform: 'other',
-            description: 'Welcome to WalletWise! Start tracking your shopping expenses.',
-            category: 'other',
-            amount: 0,
-            purchaseType: 'planned'
-        };
-        
-        expenses.push(welcomeExpense);
-        updateExpenseTable();
-        saveExpenses();
+    function saveSavings() {
+        if (currentUser) {
+            localStorage.setItem(`walletwise_savings_${currentUser.username}`, JSON.stringify(savings));
+        }
+    }
+    
+    function loadPendingItems() {
+        if (currentUser) {
+            const saved = localStorage.getItem(`walletwise_pending_${currentUser.username}`);
+            if (saved) {
+                try {
+                    pendingItems = JSON.parse(saved);
+                } catch (error) {
+                    console.error("Error loading pending items:", error);
+                    pendingItems = [];
+                }
+            }
+        }
+    }
+    
+    function savePendingItems() {
+        if (currentUser) {
+            localStorage.setItem(`walletwise_pending_${currentUser.username}`, JSON.stringify(pendingItems));
+        }
+    }
+    
+    function loadTimeBlockSettings() {
+        if (currentUser) {
+            const saved = localStorage.getItem(`walletwise_timeblock_${currentUser.username}`);
+            if (saved) {
+                try {
+                    timeBlockSettings = JSON.parse(saved);
+                } catch (error) {
+                    console.error("Error loading time block settings:", error);
+                    timeBlockSettings = {
+                        active: false,
+                        startTime: "20:00",
+                        endTime: "23:00",
+                        days: [0, 1, 2, 3, 4, 5, 6],
+                        blockEvening: true,
+                        blockLateNight: false,
+                        blockWeekends: false
+                    };
+                }
+            }
+        }
+    }
+    
+    function saveTimeBlockSettings() {
+        if (currentUser) {
+            localStorage.setItem(`walletwise_timeblock_${currentUser.username}`, JSON.stringify(timeBlockSettings));
+        }
+    }
+    
+    function loadProgressStats() {
+        if (currentUser) {
+            const saved = localStorage.getItem(`walletwise_progress_${currentUser.username}`);
+            if (saved) {
+                try {
+                    progressStats = JSON.parse(saved);
+                } catch (error) {
+                    console.error("Error loading progress stats:", error);
+                    progressStats = {
+                        lastImpulseBuy: null,
+                        totalSaved: 0,
+                        impulseReduction: 0,
+                        streakDays: 0
+                    };
+                }
+            }
+        }
+    }
+    
+    function saveProgressStats() {
+        if (currentUser) {
+            localStorage.setItem(`walletwise_progress_${currentUser.username}`, JSON.stringify(progressStats));
+        }
+    }
+    
+    function loadAllData() {
+        loadExpenses();
+        loadSavings();
+        loadPendingItems();
+        loadTimeBlockSettings();
+        loadProgressStats();
     }
     
     // === INITIALIZATION ===
     function initApp() {
+        console.log("🚀 Initializing WalletWise...");
+        
+        // Check if user is already logged in
         const savedUser = localStorage.getItem('walletwise_user');
         if (savedUser) {
             try {
                 currentUser = JSON.parse(savedUser);
                 showPage('dashboard');
-                loadExpenses();
-                loadSavings();
-                setupEventListeners();
-                setupInputValidation();
-                setupSavingsModals();
+                loadAllData();
+                showToast(`Welcome back, ${currentUser.username}!`, 'success');
             } catch (error) {
-                localStorage.removeItem('walletwise_user');
+                console.error("Error loading user:", error);
                 showPage('landing');
-                setupEventListeners();
-                setupInputValidation();
-                setupSavingsModals();
             }
         } else {
             showPage('landing');
-            setupEventListeners();
-            setupInputValidation();
-            setupSavingsModals();
         }
         
-        const today = new Date().toISOString().split('T')[0];
-        if (document.getElementById('expenseDate')) {
-            document.getElementById('expenseDate').value = today;
-        }
+        // Set current date in expense form
+        document.getElementById('expenseDate').value = new Date().toISOString().split('T')[0];
         
-        if (expenses.length === 0) {
-            loadSampleShoppingData();
-        }
+        // Initialize input validation
+        setupInputValidation();
         
-        if (!localStorage.getItem('walletwise_welcome_shown')) {
-            setTimeout(() => {
-                showToast('Welcome to WalletWise! Start controlling your online shopping today.', 'info', 5000);
-                localStorage.setItem('walletwise_welcome_shown', 'true');
-            }, 1000);
-        }
+        // Setup event listeners
+        setupEventListeners();
+        
+        // Initialize display
+        updatePendingCartDisplay();
+        updateTimeBlockDisplay();
+        
+        // Start timer for pending items countdown
+        setInterval(() => {
+            if (pendingModal.classList.contains('active')) {
+                updatePendingItemsDisplay();
+            }
+        }, 1000);
+        
+        console.log("✅ WalletWise initialized successfully!");
     }
     
-    // Start the app
+    // === START THE APP ===
     initApp();
     
-    console.log("✅ WalletWise Online Shopping Control with Savings Wallet ready!");
+    // === EXPORT FOR DEBUGGING ===
+    window.WalletWise = {
+        appState: {
+            currentUser,
+            expenses,
+            shoppingBudget,
+            savings,
+            pendingItems,
+            timeBlockSettings,
+            progressStats
+        },
+        showPage,
+        showToast,
+        addExpense,
+        deleteExpense,
+        updateExpenseTable,
+        addPendingItem,
+        removePendingItem,
+        buyPendingItem
+    };
+    
+    console.log("✅ WalletWise initialized successfully!");
 });
+
+// CSS for additional styles if needed
+const additionalCSS = `
+    .empty-state-guide {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin: 20px 0;
+        text-align: center;
+    }
+    
+    .empty-state-guide h3 {
+        margin-bottom: 15px;
+        font-size: 24px;
+    }
+    
+    .empty-state-guide p {
+        margin-bottom: 20px;
+        opacity: 0.9;
+    }
+    
+    .empty-state-guide .steps {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 25px;
+        flex-wrap: wrap;
+    }
+    
+    .empty-state-guide .step {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 15px;
+        border-radius: 10px;
+        width: 120px;
+    }
+    
+    .empty-state-guide .step-icon {
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+    
+    .pulse {
+        animation: pulse 0.5s ease-in-out;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+        100% { transform: scale(1); }
+    }
+    
+    .shake {
+        animation: shake 0.5s ease-in-out;
+    }
+    
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-10px); }
+        75% { transform: translateX(10px); }
+    }
+`;
+
+// Add the CSS to the document
+const style = document.createElement('style');
+style.textContent = additionalCSS;
+document.head.appendChild(style);

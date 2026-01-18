@@ -30,6 +30,193 @@
         <div class="loading-spinner"></div>
     </div>
 
+    <!-- 24-Hour Pending Items Modal -->
+    <div class="pending-modal">
+        <div class="pending-modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-clock"></i> 24-Hour Pending Items</h3>
+                <button class="close-pending-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="pending-summary">
+                    <div class="pending-stats">
+                        <div>
+                            <h4><span id="pendingCount">0</span> Items</h4>
+                            <p>Waiting for 24-hour review</p>
+                        </div>
+                        <div>
+                            <h4>₱<span id="pendingTotal">0</span></h4>
+                            <p>Potential savings: ₱<span id="potentialSavings">0</span></p>
+                        </div>
+                    </div>
+                    <div class="bulk-actions">
+                        <button class="btn btn-warning" id="buyAllBtn">
+                            <i class="fas fa-shopping-cart"></i> Buy All (₱0)
+                        </button>
+                        <button class="btn btn-danger" id="removeAllBtn">
+                            <i class="fas fa-trash"></i> Remove All
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="pending-list" id="pendingList">
+                    <div class="empty-pending">
+                        <p>No items in 24-hour waiting period. Great self-control! 🎉</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Time Block Modal -->
+    <div class="timeblock-modal">
+        <div class="timeblock-modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-lock"></i> Time Block Settings</h3>
+                <button class="close-timeblock-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="timeblock-status">
+                    <h4><i class="fas fa-shield-alt"></i> Active Protection</h4>
+                    <p class="status-active" id="timeblockStatus">Not active</p>
+                </div>
+                
+                <div class="timeblock-schedule">
+                    <h4><i class="fas fa-calendar-alt"></i> Block Schedule</h4>
+                    <div class="timeblock-option">
+                        <input type="checkbox" id="blockEvening" checked>
+                        <label for="blockEvening">
+                            <strong>High-Risk Hours:</strong> 8 PM - 11 PM
+                        </label>
+                    </div>
+                    <div class="timeblock-option">
+                        <input type="checkbox" id="blockLateNight">
+                        <label for="blockLateNight">
+                            <strong>Late Night:</strong> 11 PM - 2 AM
+                        </label>
+                    </div>
+                    <div class="timeblock-option">
+                        <input type="checkbox" id="blockWeekends">
+                        <label for="blockWeekends">
+                            <strong>Weekend Protection:</strong> Saturday & Sunday
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="timeblock-custom">
+                    <h4><i class="fas fa-sliders-h"></i> Custom Block</h4>
+                    <div class="time-range">
+                        <div class="form-group">
+                            <label>From:</label>
+                            <input type="time" id="blockStart" value="20:00">
+                        </div>
+                        <div class="form-group">
+                            <label>To:</label>
+                            <input type="time" id="blockEnd" value="23:00">
+                        </div>
+                    </div>
+                    <div class="days-selection">
+                        <label>Days to Block:</label>
+                        <div class="days-grid">
+                            <button class="day-btn active" data-day="0">M</button>
+                            <button class="day-btn active" data-day="1">T</button>
+                            <button class="day-btn active" data-day="2">W</button>
+                            <button class="day-btn active" data-day="3">T</button>
+                            <button class="day-btn active" data-day="4">F</button>
+                            <button class="day-btn active" data-day="5">S</button>
+                            <button class="day-btn active" data-day="6">S</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="timeblock-actions">
+                    <button class="btn btn-success" id="activateBlockBtn">
+                        <i class="fas fa-lock"></i> Activate Protection
+                    </button>
+                    <button class="btn btn-outline" id="deactivateBlockBtn">
+                        <i class="fas fa-unlock"></i> Deactivate
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Report Modal -->
+    <div class="progress-modal">
+        <div class="progress-modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-chart-line"></i> Your Progress Report</h3>
+                <button class="close-progress-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="progress-overview">
+                    <div class="progress-stat">
+                        <h4><span id="progressDays">0</span> Days</h4>
+                        <p>Since last impulse buy</p>
+                    </div>
+                    <div class="progress-stat">
+                        <h4>₱<span id="progressSaved">0</span></h4>
+                        <p>Total saved</p>
+                    </div>
+                    <div class="progress-stat">
+                        <h4><span id="progressReduction">0</span>%</h4>
+                        <p>Impulse reduction</p>
+                    </div>
+                </div>
+                
+                <div class="progress-milestones">
+                    <h4><i class="fas fa-trophy"></i> Milestones</h4>
+                    <div class="milestone" data-completed="false">
+                        <div class="milestone-icon">🏆</div>
+                        <div class="milestone-content">
+                            <h5>7 Days Clean</h5>
+                            <p>Avoid impulse purchases for 7 days</p>
+                            <div class="milestone-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 0%"></div>
+                                </div>
+                                <span>0/7 days</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="milestone" data-completed="false">
+                        <div class="milestone-icon">💰</div>
+                        <div class="milestone-content">
+                            <h5>Save ₱5,000</h5>
+                            <p>Reach ₱5,000 in savings</p>
+                            <div class="milestone-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 0%"></div>
+                                </div>
+                                <span>₱0/₱5,000</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="milestone" data-completed="false">
+                        <div class="milestone-icon">📈</div>
+                        <div class="milestone-content">
+                            <h5>Reduce by 50%</h5>
+                            <p>Cut impulse spending by 50%</p>
+                            <div class="milestone-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 0%"></div>
+                                </div>
+                                <span>0%/50%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="progress-chart">
+                    <h4><i class="fas fa-chart-bar"></i> Monthly Spending Trend</h4>
+                    <div class="chart-container">
+                        <canvas id="spendingChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Landing Page -->
     <section id="landingPage" class="page active">
         <header class="header">
@@ -437,9 +624,9 @@
                         <i class="fas fa-shopping-cart"></i>
                     </div>
                     <h3>24-Hour Pending</h3>
-                    <p><strong>3 items</strong> waiting in your cart</p>
+                    <p><strong id="pendingCartCount">0 items</strong> waiting in your cart</p>
                     <button class="btn btn-warning cart-review-btn" style="background: linear-gradient(135deg, #ff9800, #ff5722);">
-                        <i class="fas fa-clock"></i> Review Items (₱2,000)
+                        <i class="fas fa-clock"></i> Review Items (₱<span id="pendingCartAmount">0</span>)
                     </button>
                 </div>
                 
@@ -448,9 +635,9 @@
                         <i class="fas fa-ban"></i>
                     </div>
                     <h3>Time Block Active</h3>
-                    <p>High shopping risk: <strong>8-10 PM</strong></p>
+                    <p>High shopping risk: <strong id="blockTime">8-10 PM</strong></p>
                     <button class="btn btn-danger time-block-btn" style="background: linear-gradient(135deg, #f44336, #d32f2f);">
-                        <i class="fas fa-lock"></i> Set Block
+                        <i class="fas fa-lock"></i> <span id="blockStatusText">Set Block</span>
                     </button>
                 </div>
                 
@@ -459,7 +646,7 @@
                         <i class="fas fa-trophy"></i>
                     </div>
                     <h3>Progress Report</h3>
-                    <p>Saved <strong id="savedAmount">₱2,500</strong> this month</p>
+                    <p>Saved <strong id="savedAmount">₱0</strong> this month</p>
                     <button class="btn btn-success progress-btn" style="background: linear-gradient(135deg, #4caf50, #388e3c);">
                         <i class="fas fa-chart-line"></i> View Progress
                     </button>
@@ -470,17 +657,17 @@
                 <div class="budget-header">
                     <div>
                         <h3>Monthly Shopping Budget</h3>
-                        <p id="budgetRemaining">₱5,000 remaining of ₱15,000</p>
+                        <p id="budgetRemaining">₱15,000 remaining of ₱15,000</p>
                     </div>
                     <div class="budget-stats">
-                        <h3 id="budgetPercentage">33% Used</h3>
+                        <h3 id="budgetPercentage">0% Used</h3>
                         <p>You're on track! 🎯</p>
                     </div>
                 </div>
                 
                 <div class="budget-progress">
                     <div class="progress-bar">
-                        <div class="progress-fill" id="progressFill" style="width: 33%;"></div>
+                        <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
                     </div>
                     <div class="progress-labels">
                         <span>₱0</span>
@@ -572,6 +759,37 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Empty State Guidance -->
+            <div class="empty-state-guide" id="emptyStateGuide">
+                <div class="guide-card">
+                    <h3><i class="fas fa-lightbulb"></i> Getting Started</h3>
+                    <p>Welcome to your fresh WalletWise dashboard! Here's how to begin:</p>
+                    <div class="guide-steps">
+                        <div class="guide-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>Log Your First Expense</h4>
+                                <p>Use the form below to add a shopping expense. Track everything from online purchases to food delivery.</p>
+                            </div>
+                        </div>
+                        <div class="guide-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>Set Up Savings Goals</h4>
+                                <p>Click "Set Goal" in your Savings Wallet to define what you're saving for and track your progress.</p>
+                            </div>
+                        </div>
+                        <div class="guide-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h4>Review Your Budget</h4>
+                                <p>Monitor your monthly budget above. Aim to stay under ₱15,000 for smart spending control.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             
             <div class="main-card">
                 <div class="card-title">
@@ -602,7 +820,11 @@
                             </tr>
                         </thead>
                         <tbody id="expenseTableBody">
-                            <!-- Expenses loaded by JavaScript -->
+                            <tr>
+                                <td colspan="7" style="text-align: center; padding: 40px; color: #999;">
+                                    No shopping expenses logged yet. Log your first expense below!
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -616,17 +838,17 @@
             <div class="insights">
                 <div class="insight-card">
                     <h4><i class="fas fa-chart-bar"></i> Weekly Shopping Pattern</h4>
-                    <p id="shoppingPattern">You shop most on <strong>Saturdays</strong> between <strong>8-11 PM</strong></p>
+                    <p id="shoppingPattern">Start logging expenses to see your shopping patterns</p>
                     <p class="insight-tip">
-                        💡 Tip: Schedule alternative activities during high-risk times
+                        💡 Tip: Most people shop on Saturdays between 8-11 PM
                     </p>
                 </div>
                 
                 <div class="insight-card">
                     <h4><i class="fas fa-brain"></i> Emotional Triggers</h4>
-                    <p id="emotionalTriggers">78% of your impulse buys occur when you're <strong>bored</strong> or <strong>stressed</strong></p>
+                    <p id="emotionalTriggers">Log expenses to identify your shopping triggers</p>
                     <p class="insight-success">
-                        ✅ You've reduced stress-shopping by <span id="reductionPercent">40%</span> this month!
+                        ✅ Fresh start! You're in control of your spending habits
                     </p>
                 </div>
             </div>
