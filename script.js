@@ -1052,7 +1052,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return isValid;
     }
     
-    // === FORM HANDLERS ===
+    // === FIXED: FORM HANDLERS ===
     async function handleLogin(event) {
         event.preventDefault();
         
@@ -1066,25 +1066,32 @@ document.addEventListener('DOMContentLoaded', function() {
         await new Promise(resolve => setTimeout(resolve, 1500));
         
         try {
-            const savedUser = localStorage.getItem('walletwise_user');
-            let userExists = false;
+            // Get all saved users
+            const savedUsers = JSON.parse(localStorage.getItem('walletwise_users') || '[]');
             
-            if (savedUser) {
-                const existingUser = JSON.parse(savedUser);
-                if (existingUser.username === username || username === 'demo') {
-                    userExists = true;
-                }
-            }
+            // Find the user by username
+            const existingUser = savedUsers.find(user => user.username === username);
             
-            if (userExists || username === 'demo') {
+            if (existingUser) {
+                // SUCCESS: User found!
                 currentUser = {
                     username: username,
-                    email: `${username}@example.com`,
-                    joinedDate: new Date().toISOString(),
+                    email: existingUser.email || `${username}@example.com`,
+                    joinedDate: existingUser.joinedDate || new Date().toISOString(),
                     lastLogin: new Date().toISOString()
                 };
                 
-                localStorage.setItem('walletwise_user', JSON.stringify(currentUser));
+                // Update last login in the users array
+                const updatedUsers = savedUsers.map(user => {
+                    if (user.username === username) {
+                        return { ...user, lastLogin: new Date().toISOString() };
+                    }
+                    return user;
+                });
+                localStorage.setItem('walletwise_users', JSON.stringify(updatedUsers));
+                
+                // Save as current session
+                localStorage.setItem('walletwise_current_user', JSON.stringify(currentUser));
                 
                 hideLoading();
                 showLoginSuccess();
@@ -1097,10 +1104,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     showPage('dashboard');
                     loadAllData();
                 }, 3200);
-                
             } else {
+                // If we get here, login failed
                 hideLoading();
-                showToast('Invalid username or password. Try "demo" as username.', 'error');
+                showToast('Username not found. Please sign up first or check your username.', 'error');
                 loginForm.classList.add('shake');
                 setTimeout(() => loginForm.classList.remove('shake'), 500);
             }
@@ -1126,49 +1133,51 @@ document.addEventListener('DOMContentLoaded', function() {
         await new Promise(resolve => setTimeout(resolve, 2000));
         
         try {
-            const savedUser = localStorage.getItem('walletwise_user');
-            let usernameTaken = false;
+            // Get all saved users
+            const savedUsers = JSON.parse(localStorage.getItem('walletwise_users') || '[]');
             
-            if (savedUser) {
-                const existingUser = JSON.parse(savedUser);
-                if (existingUser.username === username) {
-                    usernameTaken = true;
-                }
-            }
+            // Check if username already exists
+            const existingUser = savedUsers.find(user => user.username === username);
             
-            if (usernameTaken) {
+            if (existingUser) {
                 hideLoading();
                 showToast('Username already taken. Please choose another.', 'error');
                 const usernameInput = document.getElementById('signupUsername');
                 usernameInput.classList.add('error');
-            } else {
-                currentUser = {
-                    username: username,
-                    email: email,
-                    joinedDate: new Date().toISOString(),
-                    recoveryStart: new Date().toISOString(),
-                    initialBudget: shoppingBudget,
-                    achievements: ['first_account']
-                };
-                
-                localStorage.setItem('walletwise_user', JSON.stringify(currentUser));
-                
-                hideLoading();
-                showSignupSuccess(username);
-                showSuccess(
-                    `Congratulations, ${username}! 🎊\n\nYou've taken the first step towards financial freedom. Your journey to control online shopping starts now!\n\nYour monthly shopping budget is set to ₱${shoppingBudget}.`,
-                    'Start My Journey'
-                );
-                
-                signupForm.reset();
-                document.querySelectorAll('.checkmark').forEach(el => {
-                    el.classList.remove('checked');
-                    el.textContent = '⨯';
-                });
-                document.querySelector('.strength-bar').style.width = '0%';
-                document.querySelector('.strength-text').textContent = '';
-                
+                return;
             }
+            
+            // Create new user
+            currentUser = {
+                username: username,
+                email: email,
+                joinedDate: new Date().toISOString(),
+                recoveryStart: new Date().toISOString(),
+                initialBudget: shoppingBudget,
+                achievements: ['first_account']
+            };
+            
+            // Add to users array
+            savedUsers.push(currentUser);
+            localStorage.setItem('walletwise_users', JSON.stringify(savedUsers));
+            
+            // Save as current session
+            localStorage.setItem('walletwise_current_user', JSON.stringify(currentUser));
+            
+            hideLoading();
+            showSignupSuccess(username);
+            showSuccess(
+                `Congratulations, ${username}! 🎊\n\nYou've taken the first step towards financial freedom. Your journey to control online shopping starts now!\n\nYour monthly shopping budget is set to ₱${shoppingBudget}.`,
+                'Start My Journey'
+            );
+            
+            signupForm.reset();
+            document.querySelectorAll('.checkmark').forEach(el => {
+                el.classList.remove('checked');
+                el.textContent = '⨯';
+            });
+            document.querySelector('.strength-bar').style.width = '0%';
+            document.querySelector('.strength-text').textContent = '';
             
         } catch (error) {
             hideLoading();
@@ -1928,7 +1937,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleLogout() {
         if (confirm('Are you sure you want to log out?\n\nRemember: Your progress is saved and you can continue your journey anytime.')) {
             currentUser = null;
-            localStorage.removeItem('walletwise_user');
+            localStorage.removeItem('walletwise_current_user');
             showPage('landing');
             showToast("See you soon! Keep making smart spending choices!", 'info');
         }
@@ -2403,14 +2412,14 @@ document.addEventListener('DOMContentLoaded', function() {
     function initApp() {
         console.log("🚀 Initializing WalletWise...");
         
-        // Check if user is already logged in
-        const savedUser = localStorage.getItem('walletwise_user');
-        console.log("🔍 Checking saved user:", savedUser);
+        // Check if user is already logged in from current session
+        const savedCurrentUser = localStorage.getItem('walletwise_current_user');
+        console.log("🔍 Checking saved current user:", savedCurrentUser);
         
-        if (savedUser) {
+        if (savedCurrentUser) {
             try {
-                currentUser = JSON.parse(savedUser);
-                console.log("✅ User found:", currentUser.username);
+                currentUser = JSON.parse(savedCurrentUser);
+                console.log("✅ Current user found:", currentUser.username);
                 
                 // CRITICAL: Load ALL user data BEFORE showing dashboard
                 loadAllData();
@@ -2443,9 +2452,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 showToast(`Welcome back, ${currentUser.username}!`, 'success');
                 
             } catch (error) {
-                console.error("❌ Error loading user:", error);
+                console.error("❌ Error loading current user:", error);
                 currentUser = null;
-                localStorage.removeItem('walletwise_user');
+                localStorage.removeItem('walletwise_current_user');
                 showPage('landing');
             }
         } else {
@@ -2485,7 +2494,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // === DEBUG FUNCTION ===
     function debugLocalStorage() {
         console.log("🔍 DEBUG: Checking localStorage...");
-        console.log("walletwise_user:", localStorage.getItem('walletwise_user'));
+        console.log("walletwise_current_user:", localStorage.getItem('walletwise_current_user'));
+        console.log("walletwise_users:", localStorage.getItem('walletwise_users'));
         
         if (currentUser) {
             console.log("Current user:", currentUser.username);
